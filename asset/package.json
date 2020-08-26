@@ -1,0 +1,13 @@
+{
+    "name": "arrow-test",
+    "version": "0.1.0",
+    "description": "Test arrow database",
+    "workspaces": {
+        "nohoist": [
+            "**"
+        ]
+    },
+    "dependencies": {
+        "@terascope/job-components": "^0.39.1"
+    }
+}
