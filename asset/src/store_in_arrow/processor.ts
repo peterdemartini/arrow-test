@@ -1,8 +1,13 @@
-import { MapProcessor, DataEntity, OpConfig } from '@terascope/job-components';
+import {
+    BatchProcessor, DataEntity
+} from '@terascope/job-components';
+import { ArrowTable } from '../__lib/arrow-table';
 import { StoreInArrowConfig } from './interfaces';
 
-export default class SetKey extends MapProcessor<StoreInArrowConfig> {
-    map(doc: DataEntity): DataEntity {
-        return doc;
+export default class StoreInArrow extends BatchProcessor<StoreInArrowConfig> {
+    async onBatch(records: DataEntity[]): Promise<DataEntity[]> {
+        const api = this.getAPI<ArrowTable>('arrow_table');
+        api.concat(records);
+        return records;
     }
 }

@@ -1,5 +1,3 @@
 import { OpConfig } from '@terascope/job-components';
 
-export interface StoreInArrowConfig extends OpConfig {
-
-}
+export type StoreInArrowConfig = OpConfig;
