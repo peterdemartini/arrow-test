@@ -4,17 +4,19 @@ import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import { chunk, random, times } from '@terascope/job-components';
 import { ArrowTableConfig } from '../asset/src/arrow_table/interfaces';
-import { StoreInArrowConfig } from '../asset/src/store_in_arrow/interfaces';
+import { Action, ArrowTableActionConfig } from '../asset/src/arrow_table_action/interfaces';
 import { ArrowTable } from '../asset/src/__lib/arrow-table';
 
 const chance = new Chance();
 
-describe('Store in Arrow', () => {
+describe('Arrow Table Action Processor', () => {
     let harness: WorkerTestHarness;
 
     let arrowTable: ArrowTable;
-    async function makeTest(typeConfig: TypeConfigFields, config?: Partial<StoreInArrowConfig>) {
-        const opConfig: StoreInArrowConfig = { _op: 'store_in_arrow', ...config };
+    async function makeTest(
+        action: Action, typeConfig: TypeConfigFields,
+    ): Promise<void> {
+        const opConfig: ArrowTableActionConfig = { _op: 'arrow_table_action', action };
         const apiConfig: ArrowTableConfig = { _name: 'arrow_table', type_config: Object.entries(typeConfig) };
         const job = newTestJobConfig({
             max_retries: 0,
@@ -35,7 +37,7 @@ describe('Store in Arrow', () => {
     });
 
     it('should be able to store non-array/object values in arrow', async () => {
-        await makeTest({
+        await makeTest(Action.store, {
             _key: { type: 'Keyword' },
             keyword: { type: 'Keyword' },
             text: { type: 'Text' },
@@ -65,7 +67,7 @@ describe('Store in Arrow', () => {
     });
 
     it('should be able to store array values in arrow', async () => {
-        await makeTest({
+        await makeTest(Action.store, {
             _key: { type: 'Keyword' },
             keyword: { type: 'Keyword', array: true },
             bool: { type: 'Boolean', array: true },
