@@ -6,4 +6,5 @@ export enum Action {
 }
 export interface ArrowTableActionConfig extends OpConfig {
     action: Action;
+    args: any[];
 }

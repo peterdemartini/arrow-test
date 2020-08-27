@@ -11,6 +11,11 @@ export default class Schema extends ConvictSchema<ArrowTableActionConfig> {
                     if (typeof val === 'string' && val in Action) return;
                     throw new Error('Invalid action given');
                 }
+            },
+            args: {
+                doc: 'An array of arguments for the table action',
+                default: [],
+                format: Array,
             }
         };
     }

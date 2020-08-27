@@ -14,16 +14,20 @@ describe('Arrow Table Action Processor', () => {
 
     let arrowTable: ArrowTable;
     async function makeTest(
-        action: Action, typeConfig: TypeConfigFields,
+        actions: { action: Action, args?: any[] }[], typeConfig: TypeConfigFields
     ): Promise<void> {
-        const opConfig: ArrowTableActionConfig = { _op: 'arrow_table_action', action };
+        const ops: ArrowTableActionConfig[] = actions.map(({ action, args = [] }) => ({
+            _op: 'arrow_table_action',
+            action,
+            args
+        }));
         const apiConfig: ArrowTableConfig = { _name: 'arrow_table', type_config: Object.entries(typeConfig) };
         const job = newTestJobConfig({
             max_retries: 0,
             apis: [apiConfig],
             operations: [
                 { _op: 'test-reader', passthrough_slice: true },
-                opConfig
+                ...ops
             ]
         });
         harness = new WorkerTestHarness(job);
@@ -39,7 +43,9 @@ describe('Arrow Table Action Processor', () => {
     describe('when storing non-array/object values', () => {
         let input: Record<string, any>[] = [];
         beforeEach(async () => {
-            await makeTest(Action.store, {
+            await makeTest([{
+                action: Action.store,
+            }], {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword' },
                 text: { type: 'Text' },
@@ -74,7 +80,9 @@ describe('Arrow Table Action Processor', () => {
     describe('when storing array values', () => {
         let input: Record<string, any>[] = [];
         beforeEach(async () => {
-            await makeTest(Action.store, {
+            await makeTest([{
+                action: Action.store,
+            }], {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword', array: true },
                 bool: { type: 'Boolean', array: true },
