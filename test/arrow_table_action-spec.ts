@@ -40,8 +40,12 @@ describe('Arrow Table Action Processor', () => {
         if (harness) await harness.shutdown();
     });
 
+    const SIZE = 10;
+
     describe('when storing non-array/object values', () => {
         let input: Record<string, any>[] = [];
+        let results: any[] = [];
+
         async function prepare(actions: { action: Action, args?: any[] }[]) {
             await makeTest(actions, {
                 _key: { type: 'Keyword' },
@@ -54,7 +58,7 @@ describe('Arrow Table Action Processor', () => {
                 float: { type: 'Float' },
             });
 
-            input = times(20, () => ({
+            input = times(SIZE * 2, () => ({
                 _key: chance.guid({ version: 4 }),
                 keyword: randNull(chance.animal, {}, chance),
                 text: randNull(chance.paragraph, {}, chance),
@@ -65,21 +69,44 @@ describe('Arrow Table Action Processor', () => {
                 float: randNull(chance.floating, {}, chance)
             }));
 
-            for (const slice of chunk(input, 10)) {
-                await harness.runSlice(slice);
+            results = [];
+            for (const slice of chunk(input, SIZE)) {
+                results = results.concat(await harness.runSlice(slice));
             }
         }
 
         it('should store the correct data', async () => {
-            await prepare([{
-                action: Action.store,
-            }]);
+            await prepare([{ action: Action.store }]);
             expect(arrowTable.toJSON()).toStrictEqual(input);
+        });
+
+        it('should be able sum the data', async () => {
+            await prepare([
+                { action: Action.store },
+                { action: Action.sum, args: ['short'] }
+            ]);
+
+            let _lastSum = 0;
+
+            const sums = chunk(input, SIZE)
+                .map((data) => data.reduce((acc, curr) => {
+                    const val = (curr.short != null ? curr.short : 0);
+                    return acc + val;
+                }, 0))
+                .map((num) => {
+                    const sum = num + _lastSum;
+                    _lastSum = sum;
+                    return { sum };
+                });
+
+            expect(results).toEqual(sums);
         });
     });
 
     describe('when storing array values', () => {
         let input: Record<string, any>[] = [];
+        let results: any[] = [];
+
         async function prepare(actions: { action: Action, args?: any[] }[]) {
             await makeTest(actions, {
                 _key: { type: 'Keyword' },
@@ -91,7 +118,7 @@ describe('Arrow Table Action Processor', () => {
                 float: { type: 'Float', array: true },
             });
 
-            input = times(20, () => ({
+            input = times(SIZE * 2, () => ({
                 _key: chance.guid({ version: 4 }),
                 keyword: randArrSize(chance.animal, {}, chance),
                 bool: randArrSize(chance.bool, undefined, chance),
@@ -101,8 +128,9 @@ describe('Arrow Table Action Processor', () => {
                 float: randArrSize(chance.floating, {}, chance)
             }));
 
-            for (const slice of chunk(input, 10)) {
-                await harness.runSlice(slice);
+            results = [];
+            for (const slice of chunk(input, SIZE)) {
+                results = results.concat(await harness.runSlice(slice));
             }
         }
 

@@ -53,6 +53,19 @@ export class ArrowTable {
         this._table = newTable;
     }
 
+    sum(field: string): number {
+        const col = this._table?.getColumn(field);
+        if (!col) return Number.NaN;
+        if (!a.DataType.isInt(col.type) && !a.DataType.isFloat(col.type)) {
+            return Number.NaN;
+        }
+        let sum = 0;
+        for (const val of col) {
+            sum += val != null ? val : 0;
+        }
+        return sum;
+    }
+
     /**
      * @todo handle objects
      * @todo handle geo
@@ -86,7 +99,6 @@ export class ArrowTable {
 
     toJSON(): any[] {
         if (!this._table) return [];
-
         const records: any[] = [];
 
         const colNames = times(this._table.numCols, (i) => this._table!.getColumnAt(i))
@@ -105,6 +117,7 @@ export class ArrowTable {
             }
             records.push(record);
         }
+
         return records.slice();
     }
 }
