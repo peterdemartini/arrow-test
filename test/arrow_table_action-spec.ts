@@ -42,10 +42,8 @@ describe('Arrow Table Action Processor', () => {
 
     describe('when storing non-array/object values', () => {
         let input: Record<string, any>[] = [];
-        beforeEach(async () => {
-            await makeTest([{
-                action: Action.store,
-            }], {
+        async function prepare(actions: { action: Action, args?: any[] }[]) {
+            await makeTest(actions, {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword' },
                 text: { type: 'Text' },
@@ -70,19 +68,20 @@ describe('Arrow Table Action Processor', () => {
             for (const slice of chunk(input, 10)) {
                 await harness.runSlice(slice);
             }
-        });
+        }
 
         it('should store the correct data', async () => {
+            await prepare([{
+                action: Action.store,
+            }]);
             expect(arrowTable.toJSON()).toStrictEqual(input);
         });
     });
 
     describe('when storing array values', () => {
         let input: Record<string, any>[] = [];
-        beforeEach(async () => {
-            await makeTest([{
-                action: Action.store,
-            }], {
+        async function prepare(actions: { action: Action, args?: any[] }[]) {
+            await makeTest(actions, {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword', array: true },
                 bool: { type: 'Boolean', array: true },
@@ -105,9 +104,10 @@ describe('Arrow Table Action Processor', () => {
             for (const slice of chunk(input, 10)) {
                 await harness.runSlice(slice);
             }
-        });
+        }
 
         it('should store the correct data', async () => {
+            await prepare([{ action: Action.store }]);
             expect(arrowTable.toJSON()).toStrictEqual(input);
         });
     });
