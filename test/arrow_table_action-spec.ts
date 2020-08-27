@@ -36,62 +36,72 @@ describe('Arrow Table Action Processor', () => {
         if (harness) await harness.shutdown();
     });
 
-    it('should be able to store non-array/object values in arrow', async () => {
-        await makeTest(Action.store, {
-            _key: { type: 'Keyword' },
-            keyword: { type: 'Keyword' },
-            text: { type: 'Text' },
-            bool: { type: 'Boolean' },
-            byte: { type: 'Byte' },
-            short: { type: 'Short' },
-            int: { type: 'Integer' },
-            float: { type: 'Float' },
+    describe('when storing non-array/object values', () => {
+        let input: Record<string, any>[] = [];
+        beforeEach(async () => {
+            await makeTest(Action.store, {
+                _key: { type: 'Keyword' },
+                keyword: { type: 'Keyword' },
+                text: { type: 'Text' },
+                bool: { type: 'Boolean' },
+                byte: { type: 'Byte' },
+                short: { type: 'Short' },
+                int: { type: 'Integer' },
+                float: { type: 'Float' },
+            });
+
+            input = times(20, () => ({
+                _key: chance.guid({ version: 4 }),
+                keyword: randNull(chance.animal, {}, chance),
+                text: randNull(chance.paragraph, {}, chance),
+                bool: randNull(chance.bool, undefined, chance),
+                byte: randNull(chance.integer, { min: -128, max: 127 }, chance),
+                short: randNull(chance.integer, { min: -32_768, max: 32_767 }, chance),
+                int: randNull(chance.integer, {}, chance),
+                float: randNull(chance.floating, {}, chance)
+            }));
+
+            for (const slice of chunk(input, 10)) {
+                await harness.runSlice(slice);
+            }
         });
 
-        const input = times(20, () => ({
-            _key: chance.guid({ version: 4 }),
-            keyword: randNull(chance.animal, {}, chance),
-            text: randNull(chance.paragraph, {}, chance),
-            bool: randNull(chance.bool, undefined, chance),
-            byte: randNull(chance.integer, { min: -128, max: 127 }, chance),
-            short: randNull(chance.integer, { min: -32_768, max: 32_767 }, chance),
-            int: randNull(chance.integer, {}, chance),
-            float: randNull(chance.floating, {}, chance)
-        }));
-
-        for (const slice of chunk(input, 10)) {
-            await harness.runSlice(slice);
-        }
-
-        expect(arrowTable.toJSON()).toStrictEqual(input);
+        it('should store the correct data', async () => {
+            expect(arrowTable.toJSON()).toStrictEqual(input);
+        });
     });
 
-    it('should be able to store array values in arrow', async () => {
-        await makeTest(Action.store, {
-            _key: { type: 'Keyword' },
-            keyword: { type: 'Keyword', array: true },
-            bool: { type: 'Boolean', array: true },
-            byte: { type: 'Byte', array: true },
-            short: { type: 'Short', array: true },
-            int: { type: 'Integer', array: true },
-            float: { type: 'Float', array: true },
+    describe('when storing array values', () => {
+        let input: Record<string, any>[] = [];
+        beforeEach(async () => {
+            await makeTest(Action.store, {
+                _key: { type: 'Keyword' },
+                keyword: { type: 'Keyword', array: true },
+                bool: { type: 'Boolean', array: true },
+                byte: { type: 'Byte', array: true },
+                short: { type: 'Short', array: true },
+                int: { type: 'Integer', array: true },
+                float: { type: 'Float', array: true },
+            });
+
+            input = times(20, () => ({
+                _key: chance.guid({ version: 4 }),
+                keyword: randArrSize(chance.animal, {}, chance),
+                bool: randArrSize(chance.bool, undefined, chance),
+                byte: randArrSize(chance.integer, { min: -128, max: 127 }, chance),
+                short: randArrSize(chance.integer, { min: -32_768, max: 32_767 }, chance),
+                int: randArrSize(chance.integer, {}, chance),
+                float: randArrSize(chance.floating, {}, chance)
+            }));
+
+            for (const slice of chunk(input, 10)) {
+                await harness.runSlice(slice);
+            }
         });
 
-        const input = times(20, () => ({
-            _key: chance.guid({ version: 4 }),
-            keyword: randArrSize(chance.animal, {}, chance),
-            bool: randArrSize(chance.bool, undefined, chance),
-            byte: randArrSize(chance.integer, { min: -128, max: 127 }, chance),
-            short: randArrSize(chance.integer, { min: -32_768, max: 32_767 }, chance),
-            int: randArrSize(chance.integer, {}, chance),
-            float: randArrSize(chance.floating, {}, chance)
-        }));
-
-        for (const slice of chunk(input, 10)) {
-            await harness.runSlice(slice);
-        }
-
-        expect(arrowTable.toJSON()).toStrictEqual(input);
+        it('should store the correct data', async () => {
+            expect(arrowTable.toJSON()).toStrictEqual(input);
+        });
     });
 });
 
