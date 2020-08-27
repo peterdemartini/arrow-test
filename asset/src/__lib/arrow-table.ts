@@ -25,10 +25,6 @@ export class ArrowTable {
         this._table = a.Table.empty(this.schema);
     }
 
-    get table(): a.Table {
-        return this._table;
-    }
-
     concat(records: DataEntity[]): void {
         const len = records.length;
         const builders: Record<string, a.Builder> = Object.create(null);
@@ -59,6 +55,8 @@ export class ArrowTable {
 
     /**
      * @todo handle arrays
+     * @todo handle objects
+     * @todo handle geo
     */
     private getArrowDataType({ type }: dt.FieldTypeConfig) {
         switch (type) {

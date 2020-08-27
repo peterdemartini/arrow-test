@@ -2,7 +2,7 @@ import 'jest-extended';
 import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
-import { times } from '@terascope/job-components';
+import { random, times } from '@terascope/job-components';
 import { ArrowTableConfig } from '../asset/src/arrow_table/interfaces';
 import { StoreInArrowConfig } from '../asset/src/store_in_arrow/interfaces';
 import { ArrowTable } from '../asset/src/__lib/arrow-table';
@@ -34,7 +34,7 @@ describe('Store in Arrow', () => {
         if (harness) await harness.shutdown();
     });
 
-    it('should be able to store the input in arrow', async () => {
+    it('should be able to store non-array/object values in arrow', async () => {
         await makeTest({
             _key: { type: 'Keyword' },
             keyword: { type: 'Keyword' },
@@ -48,17 +48,55 @@ describe('Store in Arrow', () => {
 
         const input = times(20, () => ({
             _key: chance.guid({ version: 4 }),
-            keyword: chance.animal(),
-            text: chance.paragraph(),
-            bool: chance.bool(),
-            byte: chance.integer({ min: -128, max: 127 }),
-            short: chance.integer({ min: -32_768, max: 32_767 }),
-            int: chance.integer(),
-            float: chance.floating()
+            keyword: randNull(chance.animal, {}, chance),
+            text: randNull(chance.paragraph, {}, chance),
+            bool: randNull(chance.bool, undefined, chance),
+            byte: randNull(chance.integer, { min: -128, max: 127 }, chance),
+            short: randNull(chance.integer, { min: -32_768, max: 32_767 }, chance),
+            int: randNull(chance.integer, {}, chance),
+            float: randNull(chance.floating, {}, chance)
         }));
-        const results = await harness.runSlice(input);
+
+        await harness.runSlice(input);
 
         expect(arrowTable.toJSON()).toStrictEqual(input);
-        expect(results).toBeArrayOfSize(input.length);
+    });
+
+    it('should be able to store array values in arrow', async () => {
+        await makeTest({
+            _key: { type: 'Keyword' },
+            keyword: { type: 'Keyword', array: true },
+            bool: { type: 'Boolean', array: true },
+            byte: { type: 'Byte', array: true },
+            short: { type: 'Short', array: true },
+            int: { type: 'Integer', array: true },
+            float: { type: 'Float', array: true },
+        });
+
+        const input = times(20, () => ({
+            _key: chance.guid({ version: 4 }),
+            keyword: randArrSize(chance.animal, {}, chance),
+            text: randArrSize(chance.paragraph, {}, chance),
+            bool: randArrSize(chance.bool, undefined, chance),
+            byte: randArrSize(chance.integer, { min: -128, max: 127 }, chance),
+            short: randArrSize(chance.integer, { min: -32_768, max: 32_767 }, chance),
+            int: randArrSize(chance.integer, {}, chance),
+            float: randArrSize(chance.floating, {}, chance)
+        }));
+
+        await harness.runSlice(input);
+
+        expect(arrowTable.toJSON()).toStrictEqual(input);
     });
 });
+
+function randArrSize<T, A>(fn: (arg?: A) => T, arg?: A, thisArg?: any): (T|null)[] {
+    return times(random(0, 20), () => randNull(fn, arg, thisArg));
+}
+
+function randNull<T, A>(fn: (arg?: A) => T, arg?: A, thisArg?: any): (T|null) {
+    const num = random(0, 10);
+    if (num === 0) return null;
+    if (thisArg) return fn.call(thisArg, arg);
+    return fn(arg);
+}
