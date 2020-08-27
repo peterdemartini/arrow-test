@@ -2,6 +2,7 @@
     "name": "arrow-test",
     "version": "0.1.0",
     "description": "Test arrow database",
+    "private": true,
     "workspaces": {
         "nohoist": [
             "**"

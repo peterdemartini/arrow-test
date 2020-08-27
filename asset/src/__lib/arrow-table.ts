@@ -1,38 +1,29 @@
 import * as a from 'apache-arrow';
 import * as dt from '@terascope/data-types';
 import {
-    DataEntity, mapValues, times
+    DataEntity, times
 } from '@terascope/job-components';
 
-type ArrowDT = ReturnType<ArrowTable['getArrowDataType']>;
 export class ArrowTable {
     readonly typeConfig: dt.TypeConfigFields;
-    readonly fieldTypes: Record<string, ArrowDT>;
     readonly schema: a.Schema;
 
-    private _table: a.Table;
+    private _table: a.Table|undefined;
 
     constructor(typeConfig: dt.TypeConfigFields) {
         this.typeConfig = typeConfig;
-        this.fieldTypes = mapValues(typeConfig, (config) => this.getArrowDataType(config));
 
-        this.schema = new a.Schema(Object.keys(typeConfig).map((name) => {
-            const { Type } = this.fieldTypes[name];
-            return new a.Field(
-                name, new Type(), true
-            );
-        }));
-        this._table = a.Table.empty(this.schema);
+        this.schema = new a.Schema(Object.entries(typeConfig).map(
+            ([name, config]) => this._getField(name, config)
+        ));
     }
 
     concat(records: DataEntity[]): void {
         const len = records.length;
         const builders: Record<string, a.Builder> = Object.create(null);
 
-        Object.entries(this.fieldTypes).forEach(([field, { Type, Builder }]) => {
-            builders[field] = new (Builder as any)({
-                type: new Type(), nullValues: [null]
-            });
+        this.schema.fields.forEach((field) => {
+            builders[field.name] = a.Builder.new({ type: field.type, nullValues: [null] });
         });
 
         for (let i = 0; i < len; i++) {
@@ -47,65 +38,70 @@ export class ArrowTable {
         }
 
         const columns = Object.entries(builders).map(
-            ([field, builder]) => a.Column.new(field, builder.finish().toVector())
+            ([field, builder]) => {
+                const vector = builder.finish().toVector();
+                if (!this._table) return a.Column.new(field, vector);
+
+                const col = this._table.getColumn(field);
+                if (!col) return a.Column.new(field, vector);
+
+                return a.Column.new(field, ...col.chunks, vector);
+            }
         );
 
-        this._table = this._table.assign(a.Table.new(columns));
+        const newTable = a.Table.new(...columns);
+        this._table = newTable;
     }
 
     /**
-     * @todo handle arrays
      * @todo handle objects
      * @todo handle geo
     */
-    private getArrowDataType({ type }: dt.FieldTypeConfig) {
+    private _getField(name: string, config: dt.FieldTypeConfig): a.Field {
+        const type = this._getType(config.type);
+        const field = new a.Field(name, type, true);
+        if (!config.array) return field;
+        return new a.Field(name, new a.List(field), true);
+    }
+
+    private _getType(type: dt.AvailableType): a.DataType {
         switch (type) {
             case 'Boolean':
-                return {
-                    Type: a.Bool,
-                    Builder: a.BoolBuilder,
-                };
+                return new a.Bool();
             case 'Integer':
             case 'Number':
             case 'Float':
             case 'Double':
-                return {
-                    Type: a.Float64,
-                    Builder: a.Float64Builder,
-                };
+                return new a.Float64();
             case 'Byte':
-                return {
-                    Type: a.Int8,
-                    Builder: a.Int8Builder,
-                };
+                return new a.Int8();
             case 'Short':
-                return {
-                    Type: a.Int16,
-                    Builder: a.Int8Builder,
-                };
+                return new a.Int16();
             case 'Long':
-                return {
-                    Type: a.Int64,
-                    Builder: a.Int64Builder,
-                };
+                return new a.Int64();
             default:
-                return {
-                    Type: a.Utf8,
-                    Builder: a.Utf8Builder,
-                };
+                return new a.Utf8();
         }
     }
 
     toJSON(): any[] {
+        if (!this._table) return [];
+
         const records: any[] = [];
-        const colNames = times(this._table.numCols, (i) => this._table.getColumnAt(i))
+
+        const colNames = times(this._table.numCols, (i) => this._table!.getColumnAt(i))
             .filter((col): col is a.Column => col != null)
             .map((col) => col.name);
 
         for (const row of this._table) {
             const record: Record<string, any> = {};
             for (const name of colNames) {
-                record[name] = row.get(name);
+                const value = row.get(name);
+                if (value instanceof a.BaseVector) {
+                    record[name] = value.toJSON();
+                } else {
+                    record[name] = value;
+                }
             }
             records.push(record);
         }

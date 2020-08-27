@@ -2,7 +2,7 @@ import 'jest-extended';
 import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
-import { random, times } from '@terascope/job-components';
+import { chunk, random, times } from '@terascope/job-components';
 import { ArrowTableConfig } from '../asset/src/arrow_table/interfaces';
 import { StoreInArrowConfig } from '../asset/src/store_in_arrow/interfaces';
 import { ArrowTable } from '../asset/src/__lib/arrow-table';
@@ -57,7 +57,9 @@ describe('Store in Arrow', () => {
             float: randNull(chance.floating, {}, chance)
         }));
 
-        await harness.runSlice(input);
+        for (const slice of chunk(input, 10)) {
+            await harness.runSlice(slice);
+        }
 
         expect(arrowTable.toJSON()).toStrictEqual(input);
     });
@@ -76,7 +78,6 @@ describe('Store in Arrow', () => {
         const input = times(20, () => ({
             _key: chance.guid({ version: 4 }),
             keyword: randArrSize(chance.animal, {}, chance),
-            text: randArrSize(chance.paragraph, {}, chance),
             bool: randArrSize(chance.bool, undefined, chance),
             byte: randArrSize(chance.integer, { min: -128, max: 127 }, chance),
             short: randArrSize(chance.integer, { min: -32_768, max: 32_767 }, chance),
@@ -84,7 +85,9 @@ describe('Store in Arrow', () => {
             float: randArrSize(chance.floating, {}, chance)
         }));
 
-        await harness.runSlice(input);
+        for (const slice of chunk(input, 10)) {
+            await harness.runSlice(slice);
+        }
 
         expect(arrowTable.toJSON()).toStrictEqual(input);
     });
