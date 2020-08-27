@@ -1,0 +1,75 @@
+{
+    "name": "Arrow Table Test",
+    "workers": 1,
+    "lifecycle": "persistent",
+    "assets": [
+        "elasticsearch",
+        "arrow-test"
+    ],
+    "apis": [
+        {
+            "_name": "arrow_table",
+            "type_config": [
+                [
+                    "ip",
+                    {
+                        "type": "IP"
+                    }
+                ],
+                [
+                    "ipv6",
+                    {
+                        "type": "IP"
+                    }
+                ],
+                [
+                    "userAgent",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "url",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "uuid",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "created",
+                    {
+                        "type": "Date"
+                    }
+                ],
+                [
+                    "bytes",
+                    {
+                        "type": "Integer"
+                    }
+                ]
+            ]
+        }
+    ],
+    "operations": [
+        {
+            "_op": "elasticsearch_data_generator",
+            "size": 1000
+        },
+        {
+            "_op": "arrow_table_action",
+            "action": "store"
+        },
+        {
+            "_op": "arrow_table_action",
+            "action": "sum",
+            "args": [
+                "bytes"
+            ]
+        }
+    ]
+}
