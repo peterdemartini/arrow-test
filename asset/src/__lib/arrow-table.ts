@@ -10,6 +10,29 @@ export class ArrowTable {
 
     private _table: a.Table|undefined;
 
+    static toJSON(table: a.Table): Record<string, any>[] {
+        const records: Record<string, any>[] = [];
+
+        const colNames = times(table.numCols, (i) => table!.getColumnAt(i))
+            .filter((col): col is a.Column => col != null)
+            .map((col) => col.name);
+
+        for (const row of table) {
+            const record: Record<string, any> = {};
+            for (const name of colNames) {
+                const value = row.get(name);
+                if (value instanceof a.BaseVector) {
+                    record[name] = value.toJSON();
+                } else {
+                    record[name] = value;
+                }
+            }
+            records.push(record);
+        }
+
+        return records.slice();
+    }
+
     constructor(typeConfig: dt.TypeConfigFields) {
         this.typeConfig = typeConfig;
 
@@ -49,8 +72,7 @@ export class ArrowTable {
             }
         );
 
-        const newTable = a.Table.new(...columns);
-        this._table = newTable;
+        this._table = a.Table.new(...columns);
     }
 
     sum(field: string): number {
@@ -66,10 +88,34 @@ export class ArrowTable {
         return sum;
     }
 
-    /**
-     * @todo handle objects
-     * @todo handle geo
-    */
+    filter(...matches: {
+        field: string;
+        value: any;
+        operator?: string;
+    }[]): Record<string, any>[] {
+        if (!this._table) return [];
+
+        const predicate = a.predicate.and(
+            ...matches.map((match) => {
+                const op = match.operator ?? 'eq' as any;
+                const col = a.predicate.col(match.field);
+                // @ts-expect-error
+                return col[op](match.value);
+            })
+        );
+        const filtered = this._table.filter(predicate);
+        const result: Record<string, any>[] = [];
+        for (const row of filtered) {
+            result.push(row.toJSON());
+        }
+        return result;
+    }
+
+    toJSON(): Record<string, any>[] {
+        if (!this._table) return [];
+        return ArrowTable.toJSON(this._table);
+    }
+
     private _getField(name: string, config: dt.FieldTypeConfig): a.Field {
         const type = this._getType(config.type);
         const field = new a.Field(name, type, true);
@@ -77,6 +123,11 @@ export class ArrowTable {
         return new a.Field(name, new a.List(field), true);
     }
 
+    /**
+     * @todo handle objects
+     * @todo handle geo
+     * @todo handle dates
+    */
     private _getType(type: dt.AvailableType): a.DataType {
         switch (type) {
             case 'Boolean':
@@ -95,30 +146,6 @@ export class ArrowTable {
             default:
                 return new a.Utf8();
         }
-    }
-
-    toJSON(): any[] {
-        if (!this._table) return [];
-        const records: any[] = [];
-
-        const colNames = times(this._table.numCols, (i) => this._table!.getColumnAt(i))
-            .filter((col): col is a.Column => col != null)
-            .map((col) => col.name);
-
-        for (const row of this._table) {
-            const record: Record<string, any> = {};
-            for (const name of colNames) {
-                const value = row.get(name);
-                if (value instanceof a.BaseVector) {
-                    record[name] = value.toJSON();
-                } else {
-                    record[name] = value;
-                }
-            }
-            records.push(record);
-        }
-
-        return records.slice();
     }
 }
 

@@ -13,6 +13,9 @@ export default class ArrowTableAction extends BatchProcessor<ArrowTableActionCon
             return [
                 DataEntity.make({ sum: api.sum(this.opConfig.args[0]) })
             ];
+        } else if (this.opConfig.action === Action.filter) {
+            const result = api.filter(...this.opConfig.args);
+            return DataEntity.makeArray(result);
         }
         return records;
     }

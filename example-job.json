@@ -70,6 +70,22 @@
             "args": [
                 "bytes"
             ]
+        },
+        {
+            "_op": "arrow_table_action",
+            "action": "filter",
+            "args": [
+                {
+                    "field": "bytes",
+                    "value": 10000,
+                    "operator": "ge"
+                },
+                {
+                    "field": "bytes",
+                    "value": 1000000,
+                    "operator": "le"
+                }
+            ]
         }
     ]
 }

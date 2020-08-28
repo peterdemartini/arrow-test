@@ -2,7 +2,9 @@ import 'jest-extended';
 import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
-import { chunk, random, times } from '@terascope/job-components';
+import {
+    chunk, flatten, random, times
+} from '@terascope/job-components';
 import { ArrowTableConfig } from '../asset/src/arrow_table/interfaces';
 import { Action, ArrowTableActionConfig } from '../asset/src/arrow_table_action/interfaces';
 import { ArrowTable } from '../asset/src/__lib/arrow-table';
@@ -71,7 +73,8 @@ describe('Arrow Table Action Processor', () => {
 
             results = [];
             for (const slice of chunk(input, SIZE)) {
-                results = results.concat(await harness.runSlice(slice));
+                const sliceResult = await harness.runSlice(slice);
+                results = results.concat(sliceResult.map((obj) => ({ ...obj })));
             }
         }
 
@@ -88,7 +91,7 @@ describe('Arrow Table Action Processor', () => {
 
             let _lastSum = 0;
 
-            const sums = chunk(input, SIZE)
+            const expected = chunk(input, SIZE)
                 .map((data) => data.reduce((acc, curr) => {
                     const val = (curr.short != null ? curr.short : 0);
                     return acc + val;
@@ -99,7 +102,65 @@ describe('Arrow Table Action Processor', () => {
                     return { sum };
                 });
 
-            expect(results).toEqual(sums);
+            expect(results).toEqual(expected);
+        });
+
+        it('should be able to filter by value', async () => {
+            await prepare([
+                { action: Action.store },
+                {
+                    action: Action.filter,
+                    args: [{
+                        field: 'bool',
+                        value: true
+                    }]
+                }
+            ]);
+
+            let _lastFound: any[] = [];
+
+            const expected = flatten(chunk(input, SIZE)
+                .map((data) => data.filter((obj) => obj.bool === true))
+                .map((data) => {
+                    const found = _lastFound.concat(data);
+                    _lastFound = found;
+                    return found;
+                }));
+
+            expect(results).toEqual(expected);
+        });
+
+        it('should be able to filter by multiple values', async () => {
+            await prepare([
+                { action: Action.store },
+                {
+                    action: Action.filter,
+                    args: [{
+                        field: 'bool',
+                        value: false
+                    }, {
+                        field: 'short',
+                        value: 100,
+                        operator: 'ge'
+                    }]
+                }
+            ]);
+
+            let _lastFound: any[] = [];
+
+            const expected = flatten(chunk(input, SIZE)
+                .map((data) => data.filter((obj) => {
+                    if (obj.bool !== false) return false;
+                    if (obj.short < 100) return false;
+                    return true;
+                }))
+                .map((data) => {
+                    const found = _lastFound.concat(data);
+                    _lastFound = found;
+                    return found;
+                }));
+
+            expect(results).toEqual(expected);
         });
     });
 
@@ -130,7 +191,8 @@ describe('Arrow Table Action Processor', () => {
 
             results = [];
             for (const slice of chunk(input, SIZE)) {
-                results = results.concat(await harness.runSlice(slice));
+                const sliceResult = await harness.runSlice(slice);
+                results = results.concat(sliceResult.map((obj) => ({ ...obj })));
             }
         }
 
