@@ -8,6 +8,7 @@
 
 **final memory:** 1.01GB
 
+```js
 operation elasticsearch_data_generator
 average completion time of: 13.17 ms, min: 4 ms, and max: 207 ms
 average size: 5000, min: 5000, and max: 5000
@@ -27,7 +28,7 @@ operation table_action (filter and return count)
 average completion time of: 191.12 ms, min: 1 ms, and max: 1549 ms
 average size: 1, min: 1, and max: 1
 average memory: 40003766.84, min: -751624288, and max: 167678432
-
+```
 
 ## ARROW TABLE:
 
@@ -35,6 +36,7 @@ average memory: 40003766.84, min: -751624288, and max: 167678432
 
 **final memory:** 858MB
 
+```js
 operation elasticsearch_data_generator
 average completion time of: 8.5 ms, min: 4 ms, and max: 86 ms
 average size: 5000, min: 5000, and max: 5000
@@ -54,3 +56,4 @@ operation table_action (filter and return count)
 average completion time of: 90.02 ms, min: 1 ms, and max: 277 ms
 average size: 1, min: 1, and max: 1
 average memory: 26853.11, min: -16562504, and max: 4344216
+```
