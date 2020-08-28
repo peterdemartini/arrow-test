@@ -5,25 +5,25 @@ import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import {
     chunk, flatten, random, times
 } from '@terascope/job-components';
-import { ArrowTableConfig } from '../asset/src/arrow_table/interfaces';
-import { Action, ArrowTableActionConfig } from '../asset/src/arrow_table_action/interfaces';
-import { ArrowTable } from '../asset/src/__lib/arrow-table';
+import { TableActionConfig } from '../asset/src/table_action/interfaces';
+import { TableAPI, TableAction } from '../asset/src/__lib/interfaces';
 
 const chance = new Chance();
 
-describe('Arrow Table Action Processor', () => {
+describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tableAPIName) => {
     let harness: WorkerTestHarness;
 
-    let arrowTable: ArrowTable;
+    let tableAPI: TableAPI;
     async function makeTest(
-        actions: { action: Action, args?: any[] }[], typeConfig: TypeConfigFields
+        actions: { action: TableAction, args?: any[] }[], typeConfig: TypeConfigFields
     ): Promise<void> {
-        const ops: ArrowTableActionConfig[] = actions.map(({ action, args = [] }) => ({
-            _op: 'arrow_table_action',
+        const ops: TableActionConfig[] = actions.map(({ action, args = [] }) => ({
+            _op: 'table_action',
+            table_api: tableAPIName as any,
             action,
             args
         }));
-        const apiConfig: ArrowTableConfig = { _name: 'arrow_table', type_config: Object.entries(typeConfig) };
+        const apiConfig = { _name: tableAPIName, type_config: Object.entries(typeConfig) };
         const job = newTestJobConfig({
             max_retries: 0,
             apis: [apiConfig],
@@ -35,9 +35,10 @@ describe('Arrow Table Action Processor', () => {
         harness = new WorkerTestHarness(job);
 
         await harness.initialize();
-        arrowTable = harness.getAPI<ArrowTable>('arrow_table');
+        tableAPI = harness.getAPI<TableAPI>(tableAPIName);
     }
 
+    // eslint-disable-next-line jest/require-top-level-describe
     afterEach(async () => {
         if (harness) await harness.shutdown();
     });
@@ -48,7 +49,7 @@ describe('Arrow Table Action Processor', () => {
         let input: Record<string, any>[] = [];
         let results: any[] = [];
 
-        async function prepare(actions: { action: Action, args?: any[] }[]) {
+        async function prepare(actions: { action: TableAction, args?: any[] }[]) {
             await makeTest(actions, {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword' },
@@ -79,14 +80,14 @@ describe('Arrow Table Action Processor', () => {
         }
 
         it('should store the correct data', async () => {
-            await prepare([{ action: Action.store }]);
-            expect(arrowTable.toJSON()).toStrictEqual(input);
+            await prepare([{ action: TableAction.store }]);
+            expect(tableAPI.toJSON()).toStrictEqual(input);
         });
 
         it('should be able sum the data', async () => {
             await prepare([
-                { action: Action.store },
-                { action: Action.sum, args: ['short'] }
+                { action: TableAction.store },
+                { action: TableAction.sum, args: ['short'] }
             ]);
 
             let _lastSum = 0;
@@ -107,9 +108,9 @@ describe('Arrow Table Action Processor', () => {
 
         it('should be able to filter by value', async () => {
             await prepare([
-                { action: Action.store },
+                { action: TableAction.store },
                 {
-                    action: Action.filter,
+                    action: TableAction.filter,
                     args: [{
                         field: 'bool',
                         value: true
@@ -132,9 +133,9 @@ describe('Arrow Table Action Processor', () => {
 
         it('should be able to filter by multiple values', async () => {
             await prepare([
-                { action: Action.store },
+                { action: TableAction.store },
                 {
-                    action: Action.filter,
+                    action: TableAction.filter,
                     args: [{
                         field: 'bool',
                         value: false
@@ -168,7 +169,7 @@ describe('Arrow Table Action Processor', () => {
         let input: Record<string, any>[] = [];
         let results: any[] = [];
 
-        async function prepare(actions: { action: Action, args?: any[] }[]) {
+        async function prepare(actions: { action: TableAction, args?: any[] }[]) {
             await makeTest(actions, {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword', array: true },
@@ -197,8 +198,8 @@ describe('Arrow Table Action Processor', () => {
         }
 
         it('should store the correct data', async () => {
-            await prepare([{ action: Action.store }]);
-            expect(arrowTable.toJSON()).toStrictEqual(input);
+            await prepare([{ action: TableAction.store }]);
+            expect(tableAPI.toJSON()).toStrictEqual(input);
         });
     });
 });

@@ -3,9 +3,9 @@ import * as dt from '@terascope/data-types';
 import {
     DataEntity, times
 } from '@terascope/job-components';
+import { FilterMatch, TableAPI } from './interfaces';
 
-export class ArrowTable {
-    readonly typeConfig: dt.TypeConfigFields;
+export class ArrowTable implements TableAPI {
     readonly schema: a.Schema;
 
     private _table: a.Table|undefined;
@@ -33,15 +33,13 @@ export class ArrowTable {
         return records.slice();
     }
 
-    constructor(typeConfig: dt.TypeConfigFields) {
-        this.typeConfig = typeConfig;
-
-        this.schema = new a.Schema(Object.entries(typeConfig).map(
+    constructor(typeConfig: [string, dt.FieldTypeConfig][]) {
+        this.schema = new a.Schema(typeConfig.map(
             ([name, config]) => this._getField(name, config)
         ));
     }
 
-    concat(records: DataEntity[]): void {
+    insert(records: DataEntity[]): void {
         const len = records.length;
         const builders: Record<string, a.Builder> = Object.create(null);
 
@@ -88,18 +86,13 @@ export class ArrowTable {
         return sum;
     }
 
-    filter(...matches: {
-        field: string;
-        value: any;
-        operator?: string;
-    }[]): Record<string, any>[] {
+    filter(...matches: FilterMatch[]): Record<string, any>[] {
         if (!this._table) return [];
 
         const predicate = a.predicate.and(
             ...matches.map((match) => {
-                const op = match.operator ?? 'eq' as any;
+                const op = match.operator ?? 'eq';
                 const col = a.predicate.col(match.field);
-                // @ts-expect-error
                 return col[op](match.value);
             })
         );
