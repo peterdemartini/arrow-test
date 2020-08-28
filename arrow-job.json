@@ -59,7 +59,7 @@
         {
             "_op": "elasticsearch_data_generator",
             "stress_test": true,
-            "size": 2000000
+            "size": 5000000
         },
         {
             "_op": "table_action",
@@ -90,10 +90,6 @@
                     "operator": "le"
                 }
             ]
-        },
-        {
-            "_op": "noop",
-            "size": 2000
         }
     ],
     "__metadata": {
