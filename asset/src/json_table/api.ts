@@ -1,9 +1,9 @@
 import { OperationAPI } from '@terascope/job-components';
-import { ArrowTable } from '../__lib/arrow-table';
-import { ArrowTableConfig } from './interfaces';
+import { JSONTable } from '../__lib/json-table';
+import { JSONTableConfig } from './interfaces';
 
-export default class ArrowTableAPI extends OperationAPI<ArrowTableConfig> {
-    async createAPI(): Promise<ArrowTable> {
-        return new ArrowTable(this.apiConfig.type_config);
+export default class JSONTableAPI extends OperationAPI<JSONTableConfig> {
+    async createAPI(): Promise<JSONTable> {
+        return new JSONTable(this.apiConfig.type_config);
     }
 }

@@ -1,0 +1,99 @@
+{
+    "name": "Arrow Table Test",
+    "workers": 1,
+    "lifecycle": "once",
+    "assets": [
+        "elasticsearch",
+        "arrow-test"
+    ],
+    "apis": [
+        {
+            "_name": "arrow_table",
+            "type_config": [
+                [
+                    "ip",
+                    {
+                        "type": "IP"
+                    }
+                ],
+                [
+                    "ipv6",
+                    {
+                        "type": "IP"
+                    }
+                ],
+                [
+                    "userAgent",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "url",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "uuid",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "created",
+                    {
+                        "type": "Date"
+                    }
+                ],
+                [
+                    "bytes",
+                    {
+                        "type": "Integer"
+                    }
+                ]
+            ]
+        }
+    ],
+    "operations": [
+        {
+            "_op": "elasticsearch_data_generator",
+            "stress_test": true,
+            "size": 5000000
+        },
+        {
+            "_op": "table_action",
+            "table_api": "arrow_table",
+            "action": "store"
+        },
+        {
+            "_op": "table_action",
+            "table_api": "arrow_table",
+            "action": "sum",
+            "args": [
+                "bytes"
+            ]
+        },
+        {
+            "_op": "table_action",
+            "table_api": "arrow_table",
+            "action": "filter",
+            "args": [
+                {
+                    "field": "bytes",
+                    "value": 10000,
+                    "operator": "ge"
+                },
+                {
+                    "field": "bytes",
+                    "value": 1000000,
+                    "operator": "le"
+                }
+            ]
+        },
+        {
+            "_op": "noop",
+            "size": 5000
+        }
+    ]
+}

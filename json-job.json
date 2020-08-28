@@ -1,14 +1,14 @@
 {
-    "name": "Arrow Table Test",
+    "name": "JSON Table Test",
     "workers": 1,
-    "lifecycle": "persistent",
+    "lifecycle": "once",
     "assets": [
         "elasticsearch",
         "arrow-test"
     ],
     "apis": [
         {
-            "_name": "arrow_table",
+            "_name": "json_table",
             "type_config": [
                 [
                     "ip",
@@ -58,21 +58,25 @@
     "operations": [
         {
             "_op": "elasticsearch_data_generator",
-            "size": 1000
+            "stress_test": true,
+            "size": 5000000
         },
         {
-            "_op": "arrow_table_action",
+            "_op": "table_action",
+            "table_api": "json_table",
             "action": "store"
         },
         {
-            "_op": "arrow_table_action",
+            "_op": "table_action",
+            "table_api": "json_table",
             "action": "sum",
             "args": [
                 "bytes"
             ]
         },
         {
-            "_op": "arrow_table_action",
+            "_op": "table_action",
+            "table_api": "json_table",
             "action": "filter",
             "args": [
                 {
@@ -86,6 +90,10 @@
                     "operator": "le"
                 }
             ]
+        },
+        {
+            "_op": "noop",
+            "size": 5000
         }
     ]
 }
