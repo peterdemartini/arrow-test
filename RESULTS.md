@@ -5,6 +5,7 @@
 ## JSON TABLE
 
 **execution time:** 6m 41s
+
 **final memory:** 1.01GB
 
 operation elasticsearch_data_generator
@@ -31,6 +32,7 @@ average memory: 40003766.84, min: -751624288, and max: 167678432
 ## ARROW TABLE:
 
 **execution time:** 4m 56s
+
 **final memory:** 858MB
 
 operation elasticsearch_data_generator
