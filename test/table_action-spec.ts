@@ -3,7 +3,7 @@ import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import {
-    chunk, flatten, random, times
+    chunk, random, times
 } from '@terascope/job-components';
 import { TableActionConfig } from '../asset/src/table_action/interfaces';
 import { TableAPI, TableAction } from '../asset/src/__lib/interfaces';
@@ -90,7 +90,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 { action: TableAction.sum, args: ['short'] }
             ]);
 
-            let _lastSum = 0;
+            let _last = 0;
 
             const expected = chunk(input, SIZE)
                 .map((data) => data.reduce((acc, curr) => {
@@ -98,8 +98,8 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                     return acc + val;
                 }, 0))
                 .map((num) => {
-                    const sum = num + _lastSum;
-                    _lastSum = sum;
+                    const sum = num + _last;
+                    _last = sum;
                     return { sum };
                 });
 
@@ -118,15 +118,15 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 }
             ]);
 
-            let _lastFound: any[] = [];
+            let _last = 0;
 
-            const expected = flatten(chunk(input, SIZE)
-                .map((data) => data.filter((obj) => obj.bool === true))
-                .map((data) => {
-                    const found = _lastFound.concat(data);
-                    _lastFound = found;
-                    return found;
-                }));
+            const expected = chunk(input, SIZE)
+                .map((data) => data.filter((obj) => obj.bool === true).length)
+                .map((num) => {
+                    const count = num + _last;
+                    _last = count;
+                    return { count };
+                });
 
             expect(results).toEqual(expected);
         });
@@ -147,19 +147,19 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 }
             ]);
 
-            let _lastFound: any[] = [];
+            let _last = 0;
 
-            const expected = flatten(chunk(input, SIZE)
+            const expected = chunk(input, SIZE)
                 .map((data) => data.filter((obj) => {
                     if (obj.bool !== false) return false;
                     if (obj.short < 100) return false;
                     return true;
-                }))
-                .map((data) => {
-                    const found = _lastFound.concat(data);
-                    _lastFound = found;
-                    return found;
-                }));
+                }).length)
+                .map((num) => {
+                    const count = num + _last;
+                    _last = count;
+                    return { count };
+                });
 
             expect(results).toEqual(expected);
         });

@@ -86,8 +86,8 @@ export class ArrowTable implements TableAPI {
         return sum;
     }
 
-    filter(...matches: FilterMatch[]): Record<string, any>[] {
-        if (!this._table) return [];
+    filter(...matches: FilterMatch[]): number {
+        if (!this._table) return -1;
 
         const predicate = a.predicate.and(
             ...matches.map((match) => {
@@ -97,11 +97,12 @@ export class ArrowTable implements TableAPI {
             })
         );
         const filtered = this._table.filter(predicate);
-        const result: Record<string, any>[] = [];
-        for (const row of filtered) {
-            result.push(row.toJSON());
-        }
-        return result;
+        // const result: Record<string, any>[] = [];
+        // for (const row of filtered) {
+        //     result.push(row.toJSON());
+        // }
+        // return result;
+        return filtered.count();
     }
 
     toJSON(): Record<string, any>[] {

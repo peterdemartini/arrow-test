@@ -59,7 +59,7 @@
         {
             "_op": "elasticsearch_data_generator",
             "stress_test": true,
-            "size": 5000000
+            "size": 2000000
         },
         {
             "_op": "table_action",
@@ -93,7 +93,15 @@
         },
         {
             "_op": "noop",
-            "size": 5000
+            "size": 2000
         }
-    ]
+    ],
+    "__metadata": {
+        "cli": {
+            "cluster": "http://localhost:5678",
+            "version": "0.29.1",
+            "job_id": "3f813fe2-8122-424a-9832-b47c95a235ee",
+            "updated": "2020-08-28T20:45:25.530Z"
+        }
+    }
 }

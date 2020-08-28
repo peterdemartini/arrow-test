@@ -42,7 +42,7 @@ export class JSONTable implements TableAPI {
         for (const record of records) {
             table.push(filterObject(record, { includes }));
         }
-        this._table = Object.freeze(this._table.concat(table));
+        this._table = this._table.concat(table);
     }
 
     sum(field: string): number {
@@ -56,7 +56,7 @@ export class JSONTable implements TableAPI {
         return sum;
     }
 
-    filter(...matches: FilterMatch[]): Record<string, any>[] {
+    filter(...matches: FilterMatch[]): number {
         const matchRecord = (record: Record<string, any>): boolean => matches.every((match) => {
             const op = this._matchers[match.operator ?? 'eq'];
             if (op(record[match.field], match.value)) {
@@ -65,7 +65,7 @@ export class JSONTable implements TableAPI {
             return false;
         });
 
-        return this._table.filter(matchRecord);
+        return this._table.filter(matchRecord).length;
     }
 
     toJSON(): Record<string, any>[] {

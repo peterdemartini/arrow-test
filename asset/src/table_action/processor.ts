@@ -11,12 +11,15 @@ export default class ArrowTableAction extends BatchProcessor<TableActionConfig> 
         if (this.opConfig.action === TableAction.store) {
             api.insert(records);
         } else if (this.opConfig.action === TableAction.sum) {
+            const sum = api.sum(this.opConfig.args[0]);
             return [
-                DataEntity.make({ sum: api.sum(this.opConfig.args[0]) })
+                DataEntity.make({ sum })
             ];
         } else if (this.opConfig.action === TableAction.filter) {
-            const result = api.filter(...this.opConfig.args);
-            return DataEntity.makeArray(result);
+            const count = api.filter(this.opConfig.args[0]);
+            return [
+                DataEntity.make({ count })
+            ];
         }
         return records;
     }

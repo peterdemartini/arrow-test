@@ -11,7 +11,7 @@ run_job() {
     else
         teraslice-cli tjm register localhost "$job_file" --start
     fi
-    teraslice-cli tjm await "$job_file" --status failing stopping terminated rejected --timeout 600000
+    teraslice-cli tjm await "$job_file" --status failing stopping terminated rejected
     echo "* JOB FINISHED $job_file"
 }
 

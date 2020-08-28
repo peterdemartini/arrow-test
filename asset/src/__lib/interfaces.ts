@@ -17,7 +17,7 @@ export interface TableAPI {
 
     sum(field: string): number;
 
-    filter(...matches: FilterMatch[]): Record<string, any>[];
+    filter(...matches: FilterMatch[]): number;
 
     toJSON(): Record<string, any>[];
 }
