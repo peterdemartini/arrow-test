@@ -4,7 +4,7 @@ import {
 } from '@terascope/job-components';
 import { FilterMatch, TableAPI } from './interfaces';
 
-type JSONTableArr = ReadonlyArray<Record<string, any>>;
+type JSONTableArr = ReadonlyArray<Record<string, unknown>>;
 
 export class JSONTable implements TableAPI {
     readonly schema: [string, dt.FieldTypeConfig][];
@@ -36,7 +36,7 @@ export class JSONTable implements TableAPI {
     }
 
     insert(records: DataEntity[]): void {
-        const table: Record<string, any>[] = [];
+        const table: Record<string, unknown>[] = [];
 
         const includes = this.schema.map(([field]) => field);
         for (const record of records) {
@@ -57,18 +57,16 @@ export class JSONTable implements TableAPI {
     }
 
     filter(...matches: FilterMatch[]): number {
-        const matchRecord = (record: Record<string, any>): boolean => matches.every((match) => {
+        const matchRecord = (record: Record<string, unknown>): boolean => matches.every((match) => {
             const op = this._matchers[match.operator ?? 'eq'];
-            if (op(record[match.field], match.value)) {
-                return true;
-            }
-            return false;
+            return op(record[match.field], match.value);
         });
 
-        return this._table.filter(matchRecord).length;
+        const filtered = this._table.filter(matchRecord);
+        return filtered.length;
     }
 
-    toJSON(): Record<string, any>[] {
+    toJSON(): Record<string, unknown>[] {
         return JSON.parse(JSON.stringify(this._table));
     }
 }

@@ -10,15 +10,15 @@ export class ArrowTable implements TableAPI {
 
     private _table: a.Table|undefined;
 
-    static toJSON(table: a.Table): Record<string, any>[] {
-        const records: Record<string, any>[] = [];
+    static toJSON(table: a.Table): Record<string, unknown>[] {
+        const records: Record<string, unknown>[] = [];
 
         const colNames = times(table.numCols, (i) => table!.getColumnAt(i))
             .filter((col): col is a.Column => col != null)
             .map((col) => col.name);
 
         for (const row of table) {
-            const record: Record<string, any> = {};
+            const record: Record<string, unknown> = {};
             for (const name of colNames) {
                 const value = row.get(name);
                 if (value instanceof a.BaseVector) {
@@ -97,15 +97,10 @@ export class ArrowTable implements TableAPI {
             })
         );
         const filtered = this._table.filter(predicate);
-        // const result: Record<string, any>[] = [];
-        // for (const row of filtered) {
-        //     result.push(row.toJSON());
-        // }
-        // return result;
         return filtered.count();
     }
 
-    toJSON(): Record<string, any>[] {
+    toJSON(): Record<string, unknown>[] {
         if (!this._table) return [];
         return ArrowTable.toJSON(this._table);
     }
@@ -143,6 +138,6 @@ export class ArrowTable implements TableAPI {
     }
 }
 
-function hasOwn<T extends Record<string, any>, K extends(keyof T)>(obj: T, key: K) {
+function hasOwn<T extends Record<string, unknown>, K extends(keyof T)>(obj: T, key: K) {
     return Object.prototype.hasOwnProperty.call(obj, key);
 }

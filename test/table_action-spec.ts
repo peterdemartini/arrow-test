@@ -3,12 +3,16 @@ import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import {
-    chunk, random, times
+    chunk, cloneDeep, isInteger, random, times
 } from '@terascope/job-components';
 import { TableActionConfig } from '../asset/src/table_action/interfaces';
 import { TableAPI, TableAction } from '../asset/src/__lib/interfaces';
 
 const chance = new Chance();
+
+// hoise these so we get consistent results
+let array_input: Record<string, unknown>[];
+let value_input: Record<string, unknown>[];
 
 describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tableAPIName) => {
     let harness: WorkerTestHarness;
@@ -45,11 +49,13 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
 
     const SIZE = 10;
 
-    describe('when storing non-array/object values', () => {
-        let input: Record<string, any>[] = [];
-        let results: any[] = [];
+    let chunked: (Record<string, unknown>[])[];
+    let results: Record<string, unknown>[];
 
+    describe('when storing non-array/object values', () => {
         async function prepare(actions: { action: TableAction, args?: any[] }[]) {
+            results = [];
+
             await makeTest(actions, {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword' },
@@ -61,7 +67,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: { type: 'Float' },
             });
 
-            input = times(SIZE * 2, () => ({
+            value_input = value_input ? cloneDeep(value_input) : times(SIZE * 2, () => ({
                 _key: chance.guid({ version: 4 }),
                 keyword: randNull(chance.animal, {}, chance),
                 text: randNull(chance.paragraph, {}, chance),
@@ -72,8 +78,9 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: randNull(chance.floating, {}, chance)
             }));
 
-            results = [];
-            for (const slice of chunk(input, SIZE)) {
+            chunked = chunk(value_input, SIZE);
+
+            for (const slice of chunked) {
                 const sliceResult = await harness.runSlice(slice);
                 results = results.concat(sliceResult.map((obj) => ({ ...obj })));
             }
@@ -81,7 +88,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
 
         it('should store the correct data', async () => {
             await prepare([{ action: TableAction.store }]);
-            expect(tableAPI.toJSON()).toStrictEqual(input);
+            expect(tableAPI.toJSON()).toStrictEqual(value_input);
         });
 
         it('should be able sum the data', async () => {
@@ -92,10 +99,10 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
 
             let _last = 0;
 
-            const expected = chunk(input, SIZE)
+            const expected = chunked
                 .map((data) => data.reduce((acc, curr) => {
-                    const val = (curr.short != null ? curr.short : 0);
-                    return acc + val;
+                    if (!isInteger(curr.short)) return acc;
+                    return acc + curr.short;
                 }, 0))
                 .map((num) => {
                     const sum = num + _last;
@@ -120,7 +127,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
 
             let _last = 0;
 
-            const expected = chunk(input, SIZE)
+            const expected = chunked
                 .map((data) => data.filter((obj) => obj.bool === true).length)
                 .map((num) => {
                     const count = num + _last;
@@ -149,14 +156,14 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
 
             let _last = 0;
 
-            const expected = chunk(input, SIZE)
-                .map((data) => data.filter((obj) => {
-                    if (obj.bool !== false) return false;
-                    if (obj.short < 100) return false;
-                    return true;
-                }).length)
+            const pre = chunked
+                .map((data) => data.filter((obj) => (
+                    obj.bool === false && (obj.short as number) >= 100
+                )));
+
+            const expected = pre
                 .map((num) => {
-                    const count = num + _last;
+                    const count = num.length + _last;
                     _last = count;
                     return { count };
                 });
@@ -166,10 +173,9 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
     });
 
     describe('when storing array values', () => {
-        let input: Record<string, any>[] = [];
-        let results: any[] = [];
-
         async function prepare(actions: { action: TableAction, args?: any[] }[]) {
+            results = [];
+
             await makeTest(actions, {
                 _key: { type: 'Keyword' },
                 keyword: { type: 'Keyword', array: true },
@@ -180,7 +186,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: { type: 'Float', array: true },
             });
 
-            input = times(SIZE * 2, () => ({
+            array_input = array_input ? cloneDeep(array_input) : times(SIZE * 2, () => ({
                 _key: chance.guid({ version: 4 }),
                 keyword: randArrSize(chance.animal, {}, chance),
                 bool: randArrSize(chance.bool, undefined, chance),
@@ -190,8 +196,8 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: randArrSize(chance.floating, {}, chance)
             }));
 
-            results = [];
-            for (const slice of chunk(input, SIZE)) {
+            chunked = chunk(array_input, SIZE);
+            for (const slice of chunked) {
                 const sliceResult = await harness.runSlice(slice);
                 results = results.concat(sliceResult.map((obj) => ({ ...obj })));
             }
@@ -199,7 +205,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
 
         it('should store the correct data', async () => {
             await prepare([{ action: TableAction.store }]);
-            expect(tableAPI.toJSON()).toStrictEqual(input);
+            expect(tableAPI.toJSON()).toStrictEqual(array_input);
         });
     });
 });
