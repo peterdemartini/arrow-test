@@ -1,3 +1,4 @@
+/* global BigInt */
 import 'jest-extended';
 import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
@@ -6,7 +7,8 @@ import {
     chunk, cloneDeep, isInteger, random, times
 } from '@terascope/job-components';
 import { TableActionConfig } from '../asset/src/table_action/interfaces';
-import { TableAPI, TableAction } from '../asset/src/__lib/interfaces';
+import { TableAPI, TableAction, TransformAction } from '../asset/src/__lib/interfaces';
+import { toUpperCase } from '../asset/src/__lib/utils';
 
 const chance = new Chance();
 
@@ -97,7 +99,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 { action: TableAction.sum, args: ['short'] }
             ]);
 
-            let _last = 0;
+            let _last = BigInt(0);
 
             const expected = chunked
                 .map((data) => data.reduce((acc, curr) => {
@@ -105,7 +107,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                     return acc + curr.short;
                 }, 0))
                 .map((num) => {
-                    const sum = num + _last;
+                    const sum = BigInt(num) + _last;
                     _last = sum;
                     return { sum };
                 });
@@ -169,6 +171,21 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 });
 
             expect(results).toEqual(expected);
+        });
+
+        it('should be able to transform a column', async () => {
+            await prepare([
+                { action: TableAction.store },
+                {
+                    action: TableAction.transform,
+                    args: ['keyword', TransformAction.toUpperCase]
+                }
+            ]);
+
+            expect(tableAPI.toJSON()).toEqual(value_input.map((record) => ({
+                ...record,
+                keyword: toUpperCase(record.keyword)
+            })));
         });
     });
 

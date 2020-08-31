@@ -1,9 +1,11 @@
+/* global BigInt */
 import * as a from 'apache-arrow';
 import * as dt from '@terascope/data-types';
 import {
     DataEntity, times
 } from '@terascope/job-components';
-import { FilterMatch, TableAPI } from './interfaces';
+import { FilterMatch, TableAPI, TransformAction } from './interfaces';
+import { transformActions } from './utils';
 
 export class ArrowTable implements TableAPI {
     readonly schema: a.Schema;
@@ -73,17 +75,39 @@ export class ArrowTable implements TableAPI {
         this._table = a.Table.new(...columns);
     }
 
-    sum(field: string): number {
+    sum(field: string): bigint {
         const col = this._table?.getColumn(field);
-        if (!col) return Number.NaN;
-        if (!a.DataType.isInt(col.type) && !a.DataType.isFloat(col.type)) {
-            return Number.NaN;
-        }
-        let sum = 0;
-        for (const val of col) {
-            sum += val != null ? val : 0;
+        if (!col) throw new Error(`Missing column ${field}`);
+
+        let sum = BigInt(0);
+        const numChunks = col.chunks.length;
+        for (let i = 0; i < numChunks; i++) {
+            const chunk = col.chunks[i] as a.Float64Vector;
+            const chunkLen = chunk.length;
+            for (let j = 0; j < chunkLen; j++) {
+                const value = chunk.get(j);
+                if (value != null) {
+                    sum += typeof value !== 'bigint' ? BigInt(value) : value;
+                }
+            }
         }
         return sum;
+    }
+
+    transform(field: string, action: TransformAction): number {
+        const col = this._table?.getColumn(field);
+        if (!col) return Number.NaN;
+
+        const numChunks = col.chunks.length;
+        for (let i = 0; i < numChunks; i++) {
+            const chunk = col.chunks[i] as a.Utf8Vector;
+            const chunkLen = chunk.length;
+            for (let j = 0; j < chunkLen; j++) {
+                const val = transformActions[action](chunk.get(j));
+                chunk.set(j, val);
+            }
+        }
+        return col.length - col.nullCount;
     }
 
     filter(...matches: FilterMatch[]): number {

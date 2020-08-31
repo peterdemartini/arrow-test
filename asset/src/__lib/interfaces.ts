@@ -4,6 +4,7 @@ export enum TableAction {
     store = 'store',
     sum = 'sum',
     filter = 'filter',
+    transform = 'transform'
 }
 
 export type FilterMatch = {
@@ -12,10 +13,17 @@ export type FilterMatch = {
     operator?: 'eq'|'ge'|'gt'|'le'|'lt'|'ne';
 };
 
+export enum TransformAction {
+    toUpperCase = 'toUpperCase',
+    toLowerCase ='toLowerCase'
+}
+
 export interface TableAPI {
     insert(records: DataEntity[]): void;
 
-    sum(field: string): number;
+    sum(field: string): bigint;
+
+    transform(field: string, action: TransformAction): number;
 
     filter(...matches: FilterMatch[]): number;
 

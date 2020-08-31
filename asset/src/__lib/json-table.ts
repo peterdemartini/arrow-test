@@ -1,8 +1,10 @@
+/* global BigInt */
 import * as dt from '@terascope/data-types';
 import {
-    DataEntity, filterObject, isNumber
+    DataEntity, filterObject
 } from '@terascope/job-components';
-import { FilterMatch, TableAPI } from './interfaces';
+import { FilterMatch, TableAPI, TransformAction } from './interfaces';
+import { transformActions } from './utils';
 
 type JSONTableArr = ReadonlyArray<Record<string, unknown>>;
 
@@ -45,15 +47,25 @@ export class JSONTable implements TableAPI {
         this._table = this._table.concat(table);
     }
 
-    sum(field: string): number {
-        let sum = 0;
+    sum(field: string): bigint {
+        let sum = BigInt(0);
         for (const record of this._table) {
             const value = record[field];
-            if (isNumber(value)) {
-                sum += value;
+            if (value != null) {
+                sum += BigInt(value);
             }
         }
         return sum;
+    }
+
+    transform(field: string, action: TransformAction): number {
+        let count = 0;
+        this._table = this._table.map((record) => {
+            record[field] = transformActions[action](record[field]);
+            if (record[field] != null) count++;
+            return record;
+        });
+        return count;
     }
 
     filter(...matches: FilterMatch[]): number {
