@@ -5,7 +5,7 @@ import { TableActionConfig } from './interfaces';
 export default class Schema extends ConvictSchema<TableActionConfig> {
     build(): Record<string, any> {
         return {
-            table: {
+            table_api: {
                 doc: 'The name of the table API to use',
                 default: 'arrow_table',
             },

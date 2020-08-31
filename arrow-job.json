@@ -3,7 +3,6 @@
     "workers": 1,
     "lifecycle": "once",
     "assets": [
-        "elasticsearch",
         "arrow-test"
     ],
     "apis": [
@@ -11,45 +10,63 @@
             "_name": "arrow_table",
             "type_config": [
                 [
+                    "_key",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "name",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "age",
+                    {
+                        "type": "Short"
+                    }
+                ],
+                [
+                    "ssn",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
+                    "favorite_animal",
+                    {
+                        "type": "Keyword"
+                    }
+                ],
+                [
                     "ip",
                     {
                         "type": "IP"
                     }
                 ],
                 [
-                    "ipv6",
-                    {
-                        "type": "IP"
-                    }
-                ],
-                [
-                    "userAgent",
+                    "phone",
                     {
                         "type": "Keyword"
                     }
                 ],
                 [
-                    "url",
-                    {
-                        "type": "Keyword"
-                    }
-                ],
-                [
-                    "uuid",
-                    {
-                        "type": "Keyword"
-                    }
-                ],
-                [
-                    "created",
+                    "birthday",
                     {
                         "type": "Date"
                     }
                 ],
                 [
-                    "bytes",
+                    "address",
                     {
-                        "type": "Integer"
+                        "type": "Text"
+                    }
+                ],
+                [
+                    "alive",
+                    {
+                        "type": "Boolean"
                     }
                 ]
             ]
@@ -57,21 +74,17 @@
     ],
     "operations": [
         {
-            "_op": "elasticsearch_data_generator",
-            "stress_test": true,
-            "size": 5000000
-        },
-        {
-            "_op": "table_action",
+            "_op": "table_reader",
             "table_api": "arrow_table",
-            "action": "store"
+            "total": 5000000,
+            "batch_size": 5000
         },
         {
             "_op": "table_action",
             "table_api": "arrow_table",
             "action": "sum",
             "args": [
-                "bytes"
+                "age"
             ]
         },
         {
@@ -80,15 +93,24 @@
             "action": "filter",
             "args": [
                 {
-                    "field": "bytes",
-                    "value": 10000,
+                    "field": "age",
+                    "value": 60,
                     "operator": "ge"
                 },
                 {
-                    "field": "bytes",
-                    "value": 1000000,
-                    "operator": "le"
+                    "field": "alive",
+                    "value": true,
+                    "operator": "eq"
                 }
+            ]
+        },
+        {
+            "_op": "table_action",
+            "table_api": "arrow_table",
+            "action": "transform",
+            "args": [
+                "favorite_animal",
+                "toUpperCase"
             ]
         }
     ],
@@ -97,7 +119,7 @@
             "cluster": "http://localhost:5678",
             "version": "0.29.1",
             "job_id": "3a46a1e5-0f0d-43e8-aff6-da6771199745",
-            "updated": "2020-08-28T23:01:36.457Z"
+            "updated": "2020-08-31T18:09:37.560Z"
         }
     }
 }
