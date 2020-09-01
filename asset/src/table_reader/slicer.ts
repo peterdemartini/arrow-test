@@ -6,6 +6,10 @@ import { TableReaderConfig } from './interfaces';
 export default class TableSlicer extends Slicer<TableReaderConfig> {
     remaining = 0;
 
+    maxQueueLength(): number {
+        return this.executionConfig.workers;
+    }
+
     async initialize(recoveryData: SlicerRecoveryData[]): Promise<void> {
         await super.initialize(recoveryData);
         this.remaining = Math.ceil(this.opConfig.total / this.opConfig.batch_size);

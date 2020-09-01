@@ -76,18 +76,18 @@
     "operations": [
         {
             "_op": "table_reader",
-            "total": 1000000,
+            "total": 10000000,
             "batch_size": 5000
         },
         {
-            "_op": "table_action",
+            "_op": "table_sum",
             "action": "sum",
             "args": [
                 "age"
             ]
         },
         {
-            "_op": "table_action",
+            "_op": "table_filter",
             "action": "filter",
             "args": [
                 {
@@ -103,7 +103,7 @@
             ]
         },
         {
-            "_op": "table_action",
+            "_op": "table_transform",
             "action": "transform",
             "args": [
                 "favorite_animal",
@@ -113,10 +113,10 @@
     ],
     "__metadata": {
         "cli": {
-            "cluster": "http://localhost:5678",
+            "cluster": "http://ts-ci1.tera4.lan",
             "version": "0.29.1",
-            "job_id": "26395118-7011-4e0f-86a0-8694ae7d5172",
-            "updated": "2020-09-01T18:03:29.530Z"
+            "job_id": "d03a5b24-306a-4ba4-859a-993ef1c1b7d6",
+            "updated": "2020-09-01T18:38:41.346Z"
         }
     }
 }

@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { Fetcher, DataEntity, SliceRequest } from '@terascope/job-components';
+import {
+    Fetcher, DataEntity, SliceRequest, pDelay
+} from '@terascope/job-components';
 import { TableReaderConfig } from './interfaces';
 import { TableAPI } from '../__lib/interfaces';
 
@@ -32,6 +34,7 @@ export default class TableFetcher extends Fetcher<TableReaderConfig> {
             results.push(DataEntity.make(doc));
         }
 
+        await pDelay(500);
         api.insert(results);
 
         return results;
