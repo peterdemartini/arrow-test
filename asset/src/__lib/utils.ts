@@ -1,5 +1,4 @@
-import { memoize } from '@terascope/job-components';
-import { FilterMatch, TransformAction } from './interfaces';
+import { TransformAction } from './interfaces';
 
 export function toUpperCase(value: unknown): string|null {
     if (typeof value !== 'string') return null;
@@ -37,18 +36,3 @@ export const matchers = Object.freeze({
         return !Object.is(a, b);
     }
 });
-type Grouped = Record<string, (value: unknown) => boolean>;
-
-export const createFilterMatchFn = memoize(_createFilterMatchFn);
-function _createFilterMatchFn(matches: FilterMatch[]): [string, (value: unknown) => boolean][] {
-    const grouped = matches.reduce((acc, m) => {
-        const prev = acc[m.field];
-        acc[m.field] = (value: unknown): boolean => {
-            const op = matchers[m.operator ?? 'eq'];
-            if (!op(value, m.value)) return false;
-            return prev ? prev(value) : true;
-        };
-        return acc;
-    }, {} as Grouped);
-    return Object.entries(grouped);
-}

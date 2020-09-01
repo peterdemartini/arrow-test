@@ -19,8 +19,8 @@ main() {
     teraslice-cli assets deploy localhost --build --replace --dev --blocking
 
     run_job "json-job.json"
-    run_job "arrow-job.json"
     run_job "simple-job.json"
+    run_job "arrow-job.json"
 }
 
 main "$@"

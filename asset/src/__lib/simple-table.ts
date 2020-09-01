@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
 /* global BigInt */
 import * as dt from '@terascope/data-types';
-import {
-    DataEntity, times
-} from '@terascope/job-components';
+import { DataEntity } from '@terascope/job-components';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
-import { createFilterMatchFn, transformActions } from './utils';
+import { matchers, transformActions } from './utils';
 
 type Maybe<T> = T|null;
-type Column<T = unknown> = ReadonlyArray<Maybe<T>>;
+type Column<T = unknown> = Maybe<T>[];
 type SimpleFields = Record<string, Column<unknown>>;
 
 export class SimpleTable implements TableAPI {
@@ -25,20 +23,13 @@ export class SimpleTable implements TableAPI {
 
     insert(records: DataEntity[]): void {
         const len = records.length;
-        const fieldsLen = this.schema.length;
 
-        const fieldValues: (unknown[])[] = times(fieldsLen, () => Array(len));
         for (let i = 0; i < len; i++) {
-            for (let j = 0; j < fieldsLen; j++) {
-                const [field] = this.schema[j];
-                fieldValues[j][i] = records[i][field] ?? null;
+            for (const [field] of this.schema) {
+                this._table[field].push(records[i][field] ?? null);
             }
+            this.length++;
         }
-        for (let j = 0; j < fieldsLen; j++) {
-            const [field] = this.schema[j];
-            this._table[field] = this._table[field].concat(fieldValues[j]);
-        }
-        this.length += len;
     }
 
     sum(field: string): bigint {
@@ -57,35 +48,54 @@ export class SimpleTable implements TableAPI {
         const col = this.getColumn(field, true);
         let count = 0;
 
-        const newCol: unknown[] = Array(this.length);
         for (let i = 0; i < this.length; i++) {
             const value = transformActions[action](col[i]);
             if (value != null) count++;
-            newCol[i] = value;
+            col[i] = value;
         }
-        this._table[field] = newCol;
         return count;
     }
 
     filter(...matches: FilterMatch[]): number {
         if (!matches.length) return 0;
 
-        const fieldMatchers = createFilterMatchFn(matches);
+        const otherFields = this.schema
+            .filter(([field]) => !matches.some((m) => field === m.field))
+            .map(([field]) => field);
 
         const filtered: Record<string, unknown>[] = [];
+
         for (let i = 0; i < this.length; i++) {
-            const matched = fieldMatchers.every(
-                ([field, fn]) => fn(this.getValue(field, i))
-            );
-            if (matched) filtered.push(this.getRow(i));
+            const row: Record<string, unknown> = {};
+            const matched = matches.every((match) => {
+                const op = matchers[match.operator ?? 'eq'];
+                let val: unknown;
+                if (match.field in row) {
+                    val = row[match.field];
+                } else {
+                    val = this.getValue(match.field, i);
+                    row[match.field] = val;
+                }
+                return op(val, match.value);
+            });
+
+            if (matched) {
+                for (const field of otherFields) {
+                    row[field] = this._table[field][i];
+                }
+                filtered.push(row);
+            }
         }
 
         return filtered.length;
     }
 
     getRow(index: number): Record<string, unknown> {
-        const entries = this.schema.map(([field]) => [field, this.getValue(field, index)]);
-        return Object.fromEntries(entries);
+        const row: Record<string, unknown> = {};
+        for (const [field] of this.schema) {
+            row[field] = this._table[field][index];
+        }
+        return row;
     }
 
     getValue<T>(field: string, index: number): Maybe<T> {
