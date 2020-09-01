@@ -15,3 +15,24 @@ export const transformActions: TActions = Object.freeze({
     [TransformAction.toUpperCase]: toUpperCase,
     [TransformAction.toLowerCase]: toLowerCase,
 });
+
+export const matchers = Object.freeze({
+    eq(a: any, b: any) {
+        return Object.is(a, b);
+    },
+    ge(a: any, b: any) {
+        return a >= b;
+    },
+    gt(a: any, b: any) {
+        return a > b;
+    },
+    le(a: any, b: any) {
+        return a <= b;
+    },
+    lt(a: any, b: any) {
+        return a < b;
+    },
+    ne(a: any, b: any) {
+        return !Object.is(a, b);
+    }
+});

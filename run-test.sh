@@ -20,6 +20,7 @@ main() {
 
     run_job "json-job.json"
     run_job "arrow-job.json"
+    run_job "simple-job.json"
 }
 
 main "$@"

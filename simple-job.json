@@ -1,5 +1,5 @@
 {
-    "name": "JSON Table Test",
+    "name": "Simple Table Test",
     "workers": 1,
     "lifecycle": "once",
     "assets": [
@@ -8,7 +8,7 @@
     "apis": [
         {
             "_name": "table",
-            "type": "json",
+            "type": "simple",
             "type_config": [
                 [
                     "_key",
@@ -110,13 +110,5 @@
                 "toUpperCase"
             ]
         }
-    ],
-    "__metadata": {
-        "cli": {
-            "cluster": "http://localhost:5678",
-            "version": "0.29.1",
-            "job_id": "26395118-7011-4e0f-86a0-8694ae7d5172",
-            "updated": "2020-08-31T21:42:02.632Z"
-        }
-    }
+    ]
 }

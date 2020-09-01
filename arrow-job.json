@@ -7,7 +7,8 @@
     ],
     "apis": [
         {
-            "_name": "arrow_table",
+            "_name": "table",
+            "type": "arrow",
             "type_config": [
                 [
                     "_key",
@@ -75,13 +76,11 @@
     "operations": [
         {
             "_op": "table_reader",
-            "table_api": "arrow_table",
-            "total": 5000000,
+            "total": 1000000,
             "batch_size": 5000
         },
         {
             "_op": "table_action",
-            "table_api": "arrow_table",
             "action": "sum",
             "args": [
                 "age"
@@ -89,7 +88,6 @@
         },
         {
             "_op": "table_action",
-            "table_api": "arrow_table",
             "action": "filter",
             "args": [
                 {
@@ -106,7 +104,6 @@
         },
         {
             "_op": "table_action",
-            "table_api": "arrow_table",
             "action": "transform",
             "args": [
                 "favorite_animal",
@@ -119,7 +116,7 @@
             "cluster": "http://localhost:5678",
             "version": "0.29.1",
             "job_id": "3a46a1e5-0f0d-43e8-aff6-da6771199745",
-            "updated": "2020-08-31T18:09:37.560Z"
+            "updated": "2020-08-31T21:42:41.358Z"
         }
     }
 }

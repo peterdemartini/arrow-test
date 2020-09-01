@@ -4,7 +4,7 @@ import {
     DataEntity, filterObject
 } from '@terascope/job-components';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
-import { transformActions } from './utils';
+import { matchers, transformActions } from './utils';
 
 type JSONTableArr = ReadonlyArray<Record<string, unknown>>;
 
@@ -12,26 +12,6 @@ export class JSONTable implements TableAPI {
     readonly schema: [string, dt.FieldTypeConfig][];
 
     private _table: JSONTableArr = [];
-    private _matchers = Object.freeze({
-        eq(a: any, b: any) {
-            return Object.is(a, b);
-        },
-        ge(a: any, b: any) {
-            return a >= b;
-        },
-        gt(a: any, b: any) {
-            return a > b;
-        },
-        le(a: any, b: any) {
-            return a <= b;
-        },
-        lt(a: any, b: any) {
-            return a < b;
-        },
-        ne(a: any, b: any) {
-            return !Object.is(a, b);
-        }
-    })
 
     constructor(typeConfig: [string, dt.FieldTypeConfig][]) {
         this.schema = typeConfig.slice();
@@ -70,7 +50,7 @@ export class JSONTable implements TableAPI {
 
     filter(...matches: FilterMatch[]): number {
         const matchRecord = (record: Record<string, unknown>): boolean => matches.every((match) => {
-            const op = this._matchers[match.operator ?? 'eq'];
+            const op = matchers[match.operator ?? 'eq'];
             return op(record[match.field], match.value);
         });
 

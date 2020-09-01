@@ -1,59 +1,59 @@
 # Results
 
-> process 5 million data generated records (each slice should process more and more)
+> process 1 million data generated records (each slice should process more and more)
 
 ## JSON TABLE
 
-**execution time:** 6m 41s
+**execution time:** 33s
 
-**final memory:** 1.01GB
+**final memory:** 1.04GB
 
 ```js
-operation elasticsearch_data_generator
-average completion time of: 13.17 ms, min: 4 ms, and max: 207 ms
+operation table_reader
+average completion time of: 18.1 ms, min: 12 ms, and max: 63 ms
 average size: 5000, min: 5000, and max: 5000
-average memory: -19352662.53, min: -985080736, and max: 1927536
+average memory: 4783316.48, min: -182896896, and max: 17722864
 
-operation table_action (store in table)
-average completion time of: 42.17 ms, min: 5 ms, and max: 537 ms
-average size: 5000, min: 5000, and max: 5000
-average memory: 3302320.73, min: -902457504, and max: 47161504
-
-operation table_action (sum field)
-average completion time of: 156.21 ms, min: 1 ms, and max: 475 ms
+operation table_action (sum)
+average completion time of: 33.62 ms, min: 1 ms, and max: 153 ms
 average size: 1, min: 1, and max: 1
-average memory: 2488.3, min: 40, and max: 560096
+average memory: -6792912.6, min: -458011064, and max: 15180720
 
-operation table_action (filter and return count)
-average completion time of: 191.12 ms, min: 1 ms, and max: 1549 ms
+operation table_action (filter)
+average completion time of: 31.73 ms, min: 2 ms, and max: 67 ms
 average size: 1, min: 1, and max: 1
-average memory: 40003766.84, min: -751624288, and max: 167678432
+average memory: 205552.12, min: -14783544, and max: 17145808
+
+operation table_action (transform)
+average completion time of: 59.12 ms, min: 1 ms, and max: 124 ms
+average size: 1, min: 1, and max: 1
+average memory: 3988634.2, min: -12865456, and max: 20495088
 ```
 
 ## ARROW TABLE:
 
-**execution time:** 4m 56s
+**execution time:** 415s
 
-**final memory:** 858MB
+**final memory:** 519 MB
 
 ```js
-operation elasticsearch_data_generator
-average completion time of: 8.5 ms, min: 4 ms, and max: 86 ms
+operation table_reader
+average completion time of: 77.86 ms, min: 44 ms, and max: 695 ms
 average size: 5000, min: 5000, and max: 5000
-average memory: 469697.4, min: -70821832, and max: 2368496
+average memory: 4167160.36, min: -352884456, and max: 16380784
 
-operation table_action (store in table)
-average completion time of: 65.31 ms, min: 31 ms, and max: 197 ms
-average size: 5000, min: 5000, and max: 5000
-average memory: 3579127.66, min: -6639312, and max: 13320392
-
-operation table_action (sum field)
-average completion time of: 182.38 ms, min: 1 ms, and max: 529 ms
+operation table_action (sum)
+average completion time of: 43.88 ms, min: 1 ms, and max: 158 ms
 average size: 1, min: 1, and max: 1
-average memory: -1047148.33, min: -13289824, and max: 15670104
+average memory: -3840661.2, min: -16082696, and max: 15297216
 
-operation table_action (filter and return count)
-average completion time of: 90.02 ms, min: 1 ms, and max: 277 ms
+operation table_action (filter)
+average completion time of: 21.35 ms, min: 1 ms, and max: 77 ms
 average size: 1, min: 1, and max: 1
-average memory: 26853.11, min: -16562504, and max: 4344216
+average memory: 239098.72, min: -16534280, and max: 15512120
+
+operation table_action (transform)
+average completion time of: 1863.73 ms, min: 36 ms, and max: 4313 ms
+average size: 1, min: 1, and max: 1
+average memory: 28691814.8, min: -395893224, and max: 214816024
 ```

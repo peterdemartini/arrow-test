@@ -10,7 +10,7 @@ import { transformActions } from './utils';
 export class ArrowTable implements TableAPI {
     readonly schema: a.Schema;
 
-    private _table: a.Table|undefined;
+    private _table: a.Table = a.Table.empty();
 
     static toJSON(table: a.Table): Record<string, unknown>[] {
         const records: Record<string, unknown>[] = [];
@@ -63,8 +63,6 @@ export class ArrowTable implements TableAPI {
         const columns = Object.entries(builders).map(
             ([field, builder]) => {
                 const vector = builder.finish().toVector();
-                if (!this._table) return a.Column.new(field, vector);
-
                 const col = this._table.getColumn(field);
                 if (!col) return a.Column.new(field, vector);
 
@@ -72,12 +70,12 @@ export class ArrowTable implements TableAPI {
             }
         );
 
-        this._table = a.Table.new(...columns);
+        this._table = a.Table.new(columns);
     }
 
     sum(field: string): bigint {
-        const col = this._table?.getColumn(field);
-        if (!col) throw new Error(`Missing column ${field}`);
+        const col = this._table.getColumn(field);
+        if (!col) throw new Error(`Missing column for field ${field}`);
 
         let sum = BigInt(0);
         const numChunks = col.chunks.length;
@@ -95,24 +93,38 @@ export class ArrowTable implements TableAPI {
     }
 
     transform(field: string, action: TransformAction): number {
-        const col = this._table?.getColumn(field);
-        if (!col) return Number.NaN;
+        const schemaField = this.schema.fields.find((f) => f.name === field);
+        const builder = a.Builder.new<a.Utf8>({ type: schemaField!.type, nullValues: [null] });
+
+        const col = this._table.getColumn(field);
+        if (!col) throw new Error(`Missing column for field ${field}`);
 
         const numChunks = col.chunks.length;
         for (let i = 0; i < numChunks; i++) {
-            const chunk = col.chunks[i] as a.Utf8Vector;
+            const chunk = col.chunks[i] as a.Float64Vector;
             const chunkLen = chunk.length;
             for (let j = 0; j < chunkLen; j++) {
-                const val = transformActions[action](chunk.get(j));
-                chunk.set(j, val);
+                const value = chunk.get(j);
+                builder.append(transformActions[action](value));
             }
         }
-        return col.length - col.nullCount;
+        builder.finish();
+
+        let result = -1;
+        const columns = this.schema.fields.map((f, index) => {
+            if (f.name === field) {
+                const vector = builder.toVector();
+                result = vector.length - vector.nullCount;
+                return a.Column.new(f, vector);
+            }
+            return this._table.getColumnAt(index) as a.Column;
+        });
+
+        this._table = a.Table.new(columns);
+        return result;
     }
 
     filter(...matches: FilterMatch[]): number {
-        if (!this._table) return -1;
-
         const predicate = a.predicate.and(
             ...matches.map((match) => {
                 const op = match.operator ?? 'eq';
@@ -125,7 +137,6 @@ export class ArrowTable implements TableAPI {
     }
 
     toJSON(): Record<string, unknown>[] {
-        if (!this._table) return [];
         return ArrowTable.toJSON(this._table);
     }
 

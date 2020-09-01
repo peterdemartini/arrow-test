@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Fetcher, DataEntity, SliceRequest } from '@terascope/job-components';
 import { TableReaderConfig } from './interfaces';
-import { ArrowTable } from '../__lib/arrow-table';
+import { TableAPI } from '../__lib/interfaces';
 
 export default class TableFetcher extends Fetcher<TableReaderConfig> {
     data: Record<string, any>[] = [];
@@ -23,7 +23,7 @@ export default class TableFetcher extends Fetcher<TableReaderConfig> {
     async fetch({ count }: SliceRequest): Promise<DataEntity[]> {
         if (typeof count !== 'number') throw new Error('Invalid count for slice input');
 
-        const api = this.getAPI<ArrowTable>(this.opConfig.table_api);
+        const api = this.getAPI<TableAPI>('table');
 
         const results: DataEntity[] = [];
         for (let i = 0; i < count; i++) {

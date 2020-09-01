@@ -4,8 +4,9 @@ import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import {
-    chunk, cloneDeep, isInteger, random, times
+    chunk, isInteger, random, times
 } from '@terascope/job-components';
+import { TableType } from '../asset/src/table/interfaces';
 import { TableActionConfig } from '../asset/src/table_action/interfaces';
 import { TableAPI, TableAction, TransformAction } from '../asset/src/__lib/interfaces';
 import { toUpperCase } from '../asset/src/__lib/utils';
@@ -16,7 +17,7 @@ const chance = new Chance();
 let array_input: Record<string, unknown>[];
 let value_input: Record<string, unknown>[];
 
-describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tableAPIName) => {
+describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableType) => {
     let harness: WorkerTestHarness;
 
     let tableAPI: TableAPI;
@@ -25,11 +26,14 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
     ): Promise<void> {
         const ops: TableActionConfig[] = actions.map(({ action, args = [] }) => ({
             _op: 'table_action',
-            table_api: tableAPIName as any,
             action,
             args
         }));
-        const apiConfig = { _name: tableAPIName, type_config: Object.entries(typeConfig) };
+        const apiConfig = {
+            _name: 'table',
+            type: tableType,
+            type_config: Object.entries(typeConfig)
+        };
         const job = newTestJobConfig({
             max_retries: 0,
             apis: [apiConfig],
@@ -41,7 +45,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
         harness = new WorkerTestHarness(job);
 
         await harness.initialize();
-        tableAPI = harness.getAPI<TableAPI>(tableAPIName);
+        tableAPI = harness.getAPI<TableAPI>('table');
     }
 
     // eslint-disable-next-line jest/require-top-level-describe
@@ -49,7 +53,8 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
         if (harness) await harness.shutdown();
     });
 
-    const SIZE = 10;
+    const SIZE = 20;
+    const CHUNKS = 10;
 
     let chunked: (Record<string, unknown>[])[];
     let results: Record<string, unknown>[];
@@ -69,7 +74,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: { type: 'Float' },
             });
 
-            value_input = value_input ? cloneDeep(value_input) : times(SIZE * 2, () => ({
+            value_input = value_input || times(SIZE * CHUNKS, () => ({
                 _key: chance.guid({ version: 4 }),
                 keyword: randNull(chance.animal, {}, chance),
                 text: randNull(chance.paragraph, {}, chance),
@@ -80,7 +85,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: randNull(chance.floating, {}, chance)
             }));
 
-            chunked = chunk(value_input, SIZE);
+            chunked = chunk(value_input, CHUNKS);
 
             for (const slice of chunked) {
                 const sliceResult = await harness.runSlice(slice);
@@ -203,7 +208,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: { type: 'Float', array: true },
             });
 
-            array_input = array_input ? cloneDeep(array_input) : times(SIZE * 2, () => ({
+            array_input = array_input || times(SIZE * CHUNKS, () => ({
                 _key: chance.guid({ version: 4 }),
                 keyword: randArrSize(chance.animal, {}, chance),
                 bool: randArrSize(chance.bool, undefined, chance),
@@ -213,7 +218,7 @@ describe.each(['arrow_table', 'json_table'])('(%s) Table Action Processor', (tab
                 float: randArrSize(chance.floating, {}, chance)
             }));
 
-            chunked = chunk(array_input, SIZE);
+            chunked = chunk(array_input, CHUNKS);
             for (const slice of chunked) {
                 const sliceResult = await harness.runSlice(slice);
                 results = results.concat(sliceResult.map((obj) => ({ ...obj })));
