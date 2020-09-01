@@ -9,7 +9,7 @@ import { matchers, transformActions } from './utils';
 type JSONTableArr = ReadonlyArray<Record<string, unknown>>;
 
 export class JSONTable implements TableAPI {
-    readonly schema: [string, dt.FieldTypeConfig][];
+    private schema: [string, dt.FieldTypeConfig][];
 
     private _table: JSONTableArr = [];
 

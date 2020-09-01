@@ -56,7 +56,7 @@ average memory: 18031675.88, min: -407134088, and max: 219275240
 
 ## SIMPLE COLUMNAR TABLE:
 
-**execution time:** x
+**execution time:** 633s
 
 ```js
 operation table_reader

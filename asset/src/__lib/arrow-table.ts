@@ -8,7 +8,7 @@ import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { transformActions } from './utils';
 
 export class ArrowTable implements TableAPI {
-    readonly schema: a.Schema;
+    private schema: a.Schema;
 
     private _table: a.Table = a.Table.empty();
 
