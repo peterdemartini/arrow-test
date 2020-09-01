@@ -110,5 +110,13 @@
                 "toUpperCase"
             ]
         }
-    ]
+    ],
+    "__metadata": {
+        "cli": {
+            "cluster": "http://localhost:5678",
+            "version": "0.29.1",
+            "job_id": "ebf41f09-f31f-40d1-8fdf-61f773f54c35",
+            "updated": "2020-09-01T03:23:45.871Z"
+        }
+    }
 }
