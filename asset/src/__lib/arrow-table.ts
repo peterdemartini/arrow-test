@@ -1,6 +1,5 @@
 import * as a from 'apache-arrow';
-import * as dt from '@terascope/data-types';
-import { times } from '@terascope/utils';
+import type * as dt from '@terascope/data-types';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { transformActions } from './utils';
 
@@ -13,9 +12,7 @@ export class ArrowTable implements TableAPI {
     static toJSON(table: a.Table): Record<string, unknown>[] {
         const records: Record<string, unknown>[] = [];
 
-        const colNames = times(table.numCols, (i) => table!.getColumnAt(i))
-            .filter((col): col is a.Column => col != null)
-            .map((col) => col.name);
+        const colNames = table.schema.fields.map((f) => f.name);
 
         for (const row of table) {
             const record: Record<string, unknown> = {};
@@ -82,51 +79,30 @@ export class ArrowTable implements TableAPI {
     }
 
     transform(field: string, action: TransformAction): number {
-        const log = process.env.LOG_TIMES === 'true';
-        if (log) console.time('init');
+        const col = this._transformColumn(field, action);
+
+        const columns = this.schema.fields.map((f, i) => {
+            if (f.name === field) return col;
+            return this._table.getColumnAt(i) as a.Column;
+        });
+
+        this._table = a.Table.new(columns);
+        return col.length - col.nullCount;
+    }
+
+    private _transformColumn(field: string, action: TransformAction): a.Vector {
         const builder = this.builders[field];
 
         const col = this._table.getColumn(field);
         if (!col) throw new Error(`Missing column for field ${field}`);
-        if (log) console.timeEnd('init');
 
-        if (log) console.time('chunks');
-        let x = 0;
-        for (const chunk of col.toArray()) {
-            if (log && x++ % 1000 === 0) {
-                console.time('transform');
-                const val = transformActions[action](chunk);
-                console.timeEnd('transform');
-                console.time('append');
-                builder.append(val);
-                console.timeEnd('append');
-            } else {
-                builder.append(transformActions[action](chunk));
-            }
+        for (const value of col) {
+            builder.append(transformActions[action](value));
         }
-        if (log) console.timeEnd('chunks');
-        if (log) console.time('finish builder');
+
         const vector = builder.finish().toVector();
         builder.clear();
-        const result = vector.length - vector.nullCount;
-        if (log) console.timeEnd('finish builder');
-
-        if (log) console.time('create column');
-        const schemaField = this.schema.fields.find((f) => f.name === field)!;
-        const newCol = a.Column.new(schemaField, vector);
-        if (log) console.timeEnd('create column');
-
-        if (log) console.time('select columns');
-        const columns = this.schema.fields.map((f, i) => {
-            if (f.name === field) return newCol;
-            return this._table.getColumnAt(i);
-        }).filter((c): c is a.Column => c != null);
-        if (log) console.timeEnd('select columns');
-
-        if (log) console.time('new table');
-        this._table = a.Table.new(columns);
-        if (log) console.timeEnd('new table');
-        return result;
+        return a.Column.new(col.field, vector);
     }
 
     filter(...matches: FilterMatch[]): number {

@@ -1,5 +1,8 @@
 {
     "name": "arrow-test",
-    "version": "0.3.0",
-    "description": "Test arrow database"
+    "version": "0.3.1",
+    "description": "Test arrow database",
+    "node_version": 12,
+    "platform": false,
+    "arch": false
 }

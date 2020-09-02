@@ -1,22 +1,10 @@
 import { OperationAPI } from '@terascope/job-components';
-import { TableConfig, TableType } from './interfaces';
-import { ArrowTable } from '../__lib/arrow-table';
-import { JSONTable } from '../__lib/json-table';
+import { TableConfig } from './interfaces';
 import { TableAPI } from '../__lib/interfaces';
-import { SimpleTable } from '../__lib/simple-table';
+import { newTable } from '../__lib';
 
 export default class TableOperationAPI extends OperationAPI<TableConfig> {
     async createAPI(): Promise<TableAPI> {
-        const { type, type_config } = this.apiConfig;
-        if (type === TableType.arrow) {
-            return new ArrowTable(type_config);
-        }
-        if (type === TableType.json) {
-            return new JSONTable(type_config);
-        }
-        if (type === TableType.simple) {
-            return new SimpleTable(type_config);
-        }
-        throw new Error(`Unknown Table API Type ${type}`);
+        return newTable(this.apiConfig.type, this.apiConfig.type_config);
     }
 }

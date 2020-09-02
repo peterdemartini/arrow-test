@@ -43,3 +43,94 @@ decrement transform (arrow)    8574.40 op/s ±  4.21%   (79 samples)
 +++++++++++++++++++++++++++ Best: decrement transform (simple) +++++++++++++++++++++++++++
 -------------------------- Worst: toLowerCase transform (arrow) --------------------------
 -------------------------- Worst: toUpperCase transform (arrow) --------------------------
+ 
+******************* (3) arrow benchmarks found (9/2/2020, 12:37:14 PM) *******************
+ 
+- filter-suite.js
+- sum-suite.js
+- transform-suite.js
+ 
+========================================= Filter =========================================
+ 
+filter (json)                  6256.03 op/s ±  3.92%   (89 samples)
+filter (simple)                5848.84 op/s ± 17.31%   (76 samples)
+filter (arrow)                19036.05 op/s ± 12.07%   (69 samples)
+
+++++++++++++++++++++++++++++++++++ Best: filter (arrow) ++++++++++++++++++++++++++++++++++
+--------------------------------- Worst: filter (simple) ---------------------------------
+
+ 
+=========================================== Sum ===========================================
+ 
+sum (json)                     9639.00 op/s ±  3.21%   (84 samples)
+sum (simple)                  17090.85 op/s ±  1.16%   (87 samples)
+sum (arrow)                    8427.45 op/s ±  7.24%   (80 samples)
+
++++++++++++++++++++++++++++++++++++ Best: sum (simple) +++++++++++++++++++++++++++++++++++
+----------------------------------- Worst: sum (arrow) -----------------------------------
+
+ 
+======================================== Transform ========================================
+ 
+toUpperCase transform (json)  10074.52 op/s ± 15.16%   (68 samples)
+toUpperCase transform (simple)17626.35 op/s ±  1.92%   (88 samples)
+toUpperCase transform (arrow)   363.21 op/s ±  5.68%   (70 samples)
+toLowerCase transform (json)  16959.05 op/s ±  4.19%   (81 samples)
+toLowerCase transform (simple)20090.70 op/s ±  5.89%   (81 samples)
+toLowerCase transform (arrow)   348.11 op/s ±  5.64%   (61 samples)
+increment transform (json)     8474.20 op/s ± 10.49%   (65 samples)
+increment transform (simple)  41215.24 op/s ±  4.82%   (77 samples)
+increment transform (arrow)    6334.92 op/s ±  6.44%   (75 samples)
+decrement transform (json)    11646.53 op/s ±  2.28%   (87 samples)
+decrement transform (simple)  44424.30 op/s ±  3.46%   (84 samples)
+decrement transform (arrow)    6859.75 op/s ±  2.63%   (81 samples)
+
++++++++++++++++++++++++++++ Best: decrement transform (simple) +++++++++++++++++++++++++++
+-------------------------- Worst: toLowerCase transform (arrow) --------------------------
+-------------------------- Worst: toUpperCase transform (arrow) --------------------------
+
+ 
+******************** (3) arrow benchmarks found (9/2/2020, 1:48:33 PM) ********************
+ 
+- filter-suite.js
+- sum-suite.js
+- transform-suite.js
+ 
+========================================= Filter =========================================
+ 
+filter (json)                  6404.86 op/s ±  1.43%   (88 samples)
+filter (simple)                7342.96 op/s ±  0.85%   (88 samples)
+filter (arrow)                23460.25 op/s ±  3.17%   (80 samples)
+
+++++++++++++++++++++++++++++++++++ Best: filter (arrow) ++++++++++++++++++++++++++++++++++
+---------------------------------- Worst: filter (json) ----------------------------------
+
+ 
+=========================================== Sum ===========================================
+ 
+sum (json)                     8483.79 op/s ±  5.69%   (76 samples)
+sum (simple)                  14244.21 op/s ±  6.96%   (75 samples)
+sum (arrow)                    8369.28 op/s ±  7.40%   (81 samples)
+
++++++++++++++++++++++++++++++++++++ Best: sum (simple) +++++++++++++++++++++++++++++++++++
+----------------------------------- Worst: sum (arrow) -----------------------------------
+
+ 
+======================================== Transform ========================================
+ 
+toUpperCase transform (json)   9591.24 op/s ± 13.19%   (68 samples)
+toUpperCase transform (simple)11903.25 op/s ± 23.75%   (61 samples)
+toUpperCase transform (arrow)   404.86 op/s ±  2.01%   (75 samples)
+toLowerCase transform (json)  20828.20 op/s ±  3.10%   (81 samples)
+toLowerCase transform (simple)17725.06 op/s ±  6.73%   (75 samples)
+toLowerCase transform (arrow)   341.64 op/s ±  7.57%   (65 samples)
+increment transform (json)    12842.37 op/s ±  4.51%   (79 samples)
+increment transform (simple)  45878.46 op/s ±  0.77%   (87 samples)
+increment transform (arrow)    7102.02 op/s ±  1.78%   (85 samples)
+decrement transform (json)    12392.57 op/s ±  0.71%   (87 samples)
+decrement transform (simple)  45863.92 op/s ±  4.66%   (83 samples)
+decrement transform (arrow)    6887.79 op/s ±  2.54%   (83 samples)
+
++++++++++++++++++++++++++++ Best: increment transform (simple) +++++++++++++++++++++++++++
+-------------------------- Worst: toLowerCase transform (arrow) --------------------------
+

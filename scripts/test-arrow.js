@@ -3,11 +3,9 @@
 'use strict';
 
 const {
-    TransformAction, ArrowTable
+    TransformAction, newTable, TableType
 } = require('../asset/dist/__lib');
 const testData = require('../asset/people.json');
-
-process.env.LOG_TIMES = 'true';
 
 const typeConfig = Object.entries({
     _key: {
@@ -41,9 +39,10 @@ const typeConfig = Object.entries({
         type: 'Boolean'
     },
 });
-const arrowTable = new ArrowTable(typeConfig);
+const table = newTable(TableType.arrow, typeConfig);
+
 console.time(`insert ${testData.length} records`);
-arrowTable.insert(testData);
+table.insert(testData);
 console.timeEnd(`insert ${testData.length} records`);
 
 const fields = {
@@ -53,12 +52,16 @@ const fields = {
     [TransformAction.decrement]: 'age',
 };
 
-console.log('START', process.resourceUsage());
+const logUsage = false;
+
+if (logUsage) console.log('START', process.resourceUsage());
 for (const action of Object.values(TransformAction)) {
+    if (logUsage) console.log(`START ${action}`, process.resourceUsage());
+
     console.time(`transform ${action}`);
-    console.log(`START ${action}`, process.resourceUsage());
-    arrowTable.transform(fields[action], action);
-    console.log(`END ${action}`, process.resourceUsage());
+    table.transform(fields[action], action);
     console.timeEnd(`transform ${action}`);
+
+    if (logUsage) console.log(`END ${action}`, process.resourceUsage());
 }
-console.log('END', process.resourceUsage());
+if (logUsage) console.log('END', process.resourceUsage());

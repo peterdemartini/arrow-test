@@ -1,3 +1,9 @@
+export enum TableType {
+    json = 'json',
+    simple = 'simple',
+    arrow = 'arrow',
+}
+
 export enum TableAction {
     sum = 'sum',
     filter = 'filter',

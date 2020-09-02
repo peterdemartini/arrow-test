@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-import * as dt from '@terascope/data-types';
+import type * as dt from '@terascope/data-types';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { matchers, transformActions } from './utils';
 
