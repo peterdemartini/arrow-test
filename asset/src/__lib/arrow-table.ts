@@ -9,27 +9,6 @@ export class ArrowTable implements TableAPI {
 
     private _table: a.Table = a.Table.empty();
 
-    static toJSON(table: a.Table): Record<string, unknown>[] {
-        const records: Record<string, unknown>[] = [];
-
-        const colNames = table.schema.fields.map((f) => f.name);
-
-        for (const row of table) {
-            const record: Record<string, unknown> = {};
-            for (const name of colNames) {
-                const value = row.get(name);
-                if (value instanceof a.BaseVector) {
-                    record[name] = value.toJSON();
-                } else {
-                    record[name] = value;
-                }
-            }
-            records.push(record);
-        }
-
-        return records.slice();
-    }
-
     constructor(typeConfig: [string, dt.FieldTypeConfig][]) {
         this.schema = new a.Schema(typeConfig.map(
             ([name, config]) => this._getField(name, config)
@@ -99,7 +78,7 @@ export class ArrowTable implements TableAPI {
             builder.append(transformActions[action](value));
         }
 
-        col.toArray().forEach(transformAndAppend);
+        for (const value of col) { transformAndAppend(value); }
 
         const vector = builder.finish().toVector();
         return a.Column.new(col.field, vector);
@@ -118,7 +97,24 @@ export class ArrowTable implements TableAPI {
     }
 
     toJSON(): Record<string, unknown>[] {
-        return ArrowTable.toJSON(this._table);
+        const records: Record<string, unknown>[] = [];
+
+        const colNames = this._table.schema.fields.map((f) => f.name);
+
+        for (const row of this._table) {
+            const record: Record<string, unknown> = {};
+            for (const name of colNames) {
+                const value = row.get(name);
+                if (value instanceof a.BaseVector) {
+                    record[name] = value.toJSON();
+                } else {
+                    record[name] = value;
+                }
+            }
+            records.push(record);
+        }
+
+        return records.slice();
     }
 
     private _getField(name: string, config: dt.FieldTypeConfig): a.Field {

@@ -1,6 +1,6 @@
 {
   "name": "arrow-test-bundle",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Teraslice Asset bundle for testing Apache Arrow",
   "main": "index.js",
   "scripts": {

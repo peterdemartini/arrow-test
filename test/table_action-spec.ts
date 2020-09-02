@@ -11,7 +11,7 @@ import {
     TableAction,
     TransformAction,
     toUpperCase
-} from '../asset/src/table/__lib';
+} from '../asset/src/__lib';
 
 const chance = new Chance();
 
