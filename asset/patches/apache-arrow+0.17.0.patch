@@ -1,0 +1,13 @@
+diff --git a/node_modules/apache-arrow/util/buffer.js b/node_modules/apache-arrow/util/buffer.js
+index 86139f3..5950050 100644
+--- a/node_modules/apache-arrow/util/buffer.js
++++ b/node_modules/apache-arrow/util/buffer.js
+@@ -85,7 +85,7 @@ exports.joinUint8Arrays = joinUint8Arrays;
+ function toArrayBufferView(ArrayBufferViewCtor, input) {
+     let value = compat_1.isIteratorResult(input) ? input.value : input;
+     if (value instanceof ArrayBufferViewCtor) {
+-        if (ArrayBufferViewCtor === Uint8Array) {
++        if (ArrayBufferViewCtor === Uint8Array && Buffer.isBuffer(value)) {
+             // Node's `Buffer` class passes the `instanceof Uint8Array` check, but we need
+             // a real Uint8Array, since Buffer#slice isn't the same as Uint8Array#slice :/
+             return new ArrayBufferViewCtor(value.buffer, value.byteOffset, value.byteLength);

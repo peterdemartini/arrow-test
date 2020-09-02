@@ -101,7 +101,7 @@ export class ArrowTable implements TableAPI {
 
         if (log) console.time('chunks');
         let x = 0;
-        for (const chunk of col) {
+        for (const chunk of col.toArray()) {
             if (log && x++ % 1000 === 0) {
                 console.time('transform');
                 const val = transformActions[action](chunk);
@@ -110,8 +110,7 @@ export class ArrowTable implements TableAPI {
                 builder.append(val);
                 console.timeEnd('append');
             } else {
-                const val = transformActions[action](chunk);
-                builder.append(val);
+                builder.append(transformActions[action](chunk));
             }
         }
         if (log) console.timeEnd('chunks');
