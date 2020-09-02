@@ -13,6 +13,11 @@ export default class Schema extends ConvictSchema<TableReaderConfig> {
                 doc: 'The number of records to read per fetch',
                 format: 'nat',
                 default: 5000
+            },
+            passthrough_slice: {
+                doc: 'Passthrough the incoming slice (only for testing)',
+                default: false,
+                format: Boolean
             }
         };
     }

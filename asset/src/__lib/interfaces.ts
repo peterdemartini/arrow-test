@@ -1,7 +1,6 @@
 import { DataEntity } from '@terascope/job-components';
 
 export enum TableAction {
-    store = 'store',
     sum = 'sum',
     filter = 'filter',
     transform = 'transform'

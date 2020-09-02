@@ -33,7 +33,7 @@ export class SimpleTable implements TableAPI {
     }
 
     sum(field: string): bigint {
-        const col = this.getColumn<number>(field, true);
+        const col = this.getColumn<number>(field);
         let sum = BigInt(0);
         for (let i = 0; i < this.length; i++) {
             const value = col[i];
@@ -45,7 +45,7 @@ export class SimpleTable implements TableAPI {
     }
 
     transform(field: string, action: TransformAction): number {
-        const col = this.getColumn(field, true);
+        const col = this.getColumn(field);
         let count = 0;
 
         for (let i = 0; i < this.length; i++) {
@@ -102,12 +102,9 @@ export class SimpleTable implements TableAPI {
         return this._table[field][index] as Maybe<T>;
     }
 
-    getColumn<T>(name: string, throwOnMissing: true): Column<T>;
-    getColumn<T>(name: string, throwOnMissing: false): Column<T>|undefined;
-    getColumn<T>(name: string, throwOnMissing: boolean): Column<T>|undefined {
-        const col = this._table[name] as Column<T>|undefined;
+    getColumn<T>(name: string): Column<T> {
+        const col = this._table[name] as Column<T>;
         if (!col) {
-            if (!throwOnMissing) return;
             throw new Error(`Missing column for ${name}`);
         }
         return col;

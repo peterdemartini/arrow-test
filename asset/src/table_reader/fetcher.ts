@@ -22,20 +22,29 @@ export default class TableFetcher extends Fetcher<TableReaderConfig> {
         await super.initialize();
     }
 
-    async fetch({ count }: SliceRequest): Promise<DataEntity[]> {
-        if (typeof count !== 'number') throw new Error('Invalid count for slice input');
-
+    async fetch(slice: SliceRequest): Promise<DataEntity[]> {
         const api = this.getAPI<TableAPI>('table');
+        if (this.opConfig.passthrough_slice) {
+            if (!Array.isArray(slice)) {
+                throw new Error('Test, when passthrough_slice is set to true it expects an array');
+            }
+            api.insert(slice);
+            return slice as any[];
+        }
+        if (typeof slice.count !== 'number') {
+            throw new Error('Invalid count for slice input');
+        }
 
         const results: DataEntity[] = [];
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < slice.count; i++) {
             if (this.offset > (this.data.length - 1)) this.offset = 0;
             const doc = this.data[this.offset++];
             results.push(DataEntity.make(doc));
         }
 
-        await pDelay(500);
+        await pDelay(10);
         api.insert(results);
+        await pDelay(10);
 
         return results;
     }

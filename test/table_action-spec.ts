@@ -4,10 +4,9 @@ import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
 import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import {
-    chunk, isInteger, random, times
+    chunk, isInteger, OpConfig, random, times
 } from '@terascope/job-components';
 import { TableType } from '../asset/src/table/interfaces';
-import { TableActionConfig } from '../asset/src/table_action/interfaces';
 import { TableAPI, TableAction, TransformAction } from '../asset/src/__lib/interfaces';
 import { toUpperCase } from '../asset/src/__lib/utils';
 
@@ -17,18 +16,21 @@ const chance = new Chance();
 let array_input: Record<string, unknown>[];
 let value_input: Record<string, unknown>[];
 
+type TestAction = {
+    action: TableAction,
+} & Record<string, unknown>;
 describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableType) => {
     let harness: WorkerTestHarness;
 
     let tableAPI: TableAPI;
     async function makeTest(
-        actions: { action: TableAction, args?: any[] }[], typeConfig: TypeConfigFields
+        actions: TestAction[], typeConfig: TypeConfigFields
     ): Promise<void> {
-        const ops: TableActionConfig[] = actions.map(({ action, args = [] }) => ({
-            _op: 'table_action',
-            action,
-            args
-        }));
+        const ops: OpConfig[] = actions.length ? actions.map(({ action, ...args }) => ({
+            _op: `table_${action}`,
+            ...args
+        })) : [{ _op: 'noop' }];
+
         const apiConfig = {
             _name: 'table',
             type: tableType,
@@ -38,7 +40,7 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
             max_retries: 0,
             apis: [apiConfig],
             operations: [
-                { _op: 'test-reader', passthrough_slice: true },
+                { _op: 'table_reader', passthrough_slice: true },
                 ...ops
             ]
         });
@@ -53,14 +55,14 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
         if (harness) await harness.shutdown();
     });
 
-    const SIZE = 20;
-    const CHUNKS = 10;
+    const SIZE = 2;
+    const CHUNKS = 2;
 
     let chunked: (Record<string, unknown>[])[];
     let results: Record<string, unknown>[];
 
     describe('when storing non-array/object values', () => {
-        async function prepare(actions: { action: TableAction, args?: any[] }[]) {
+        async function prepare(actions: TestAction[]) {
             results = [];
 
             await makeTest(actions, {
@@ -94,14 +96,13 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
         }
 
         it('should store the correct data', async () => {
-            await prepare([{ action: TableAction.store }]);
+            await prepare([]);
             expect(tableAPI.toJSON()).toStrictEqual(value_input);
         });
 
         it('should be able sum the data', async () => {
             await prepare([
-                { action: TableAction.store },
-                { action: TableAction.sum, args: ['short'] }
+                { action: TableAction.sum, field: 'short' }
             ]);
 
             let _last = BigInt(0);
@@ -122,10 +123,9 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
 
         it('should be able to filter by value', async () => {
             await prepare([
-                { action: TableAction.store },
                 {
                     action: TableAction.filter,
-                    args: [{
+                    filters: [{
                         field: 'bool',
                         value: true
                     }]
@@ -147,10 +147,9 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
 
         it('should be able to filter by multiple values', async () => {
             await prepare([
-                { action: TableAction.store },
                 {
                     action: TableAction.filter,
-                    args: [{
+                    filters: [{
                         field: 'bool',
                         value: false
                     }, {
@@ -180,10 +179,10 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
 
         it('should be able to transform a column', async () => {
             await prepare([
-                { action: TableAction.store },
                 {
                     action: TableAction.transform,
-                    args: ['keyword', TransformAction.toUpperCase]
+                    field: 'keyword',
+                    fn: TransformAction.toUpperCase,
                 }
             ]);
 
@@ -195,7 +194,7 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
     });
 
     describe('when storing array values', () => {
-        async function prepare(actions: { action: TableAction, args?: any[] }[]) {
+        async function prepare(actions: TestAction[]) {
             results = [];
 
             await makeTest(actions, {
@@ -226,7 +225,7 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
         }
 
         it('should store the correct data', async () => {
-            await prepare([{ action: TableAction.store }]);
+            await prepare([]);
             expect(tableAPI.toJSON()).toStrictEqual(array_input);
         });
     });
