@@ -10,7 +10,8 @@ const { printHeader } = require('./helpers');
 function start(name, dir) {
     const benchmarks = fs.readdirSync(dir).filter((filename) => filename.match(/-suite\.js$/));
 
-    printHeader(`(${benchmarks.length}) ${name} benchmarks found`, '*');
+    const date = new Date().toLocaleString();
+    printHeader(`(${benchmarks.length}) ${name} benchmarks found (${date})`, '*');
     benchmarks.forEach((file) => {
         console.log(`- ${file}`);
     });

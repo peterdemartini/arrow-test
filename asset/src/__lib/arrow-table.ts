@@ -1,9 +1,6 @@
-/* global BigInt */
 import * as a from 'apache-arrow';
 import * as dt from '@terascope/data-types';
-import {
-    DataEntity, times
-} from '@terascope/job-components';
+import { times } from '@terascope/utils';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { transformActions } from './utils';
 
@@ -41,7 +38,7 @@ export class ArrowTable implements TableAPI {
         ));
     }
 
-    insert(records: DataEntity[]): void {
+    insert(records: Record<string, any>[]): void {
         const len = records.length;
         const builders: Record<string, a.Builder> = Object.create(null);
 
@@ -93,34 +90,47 @@ export class ArrowTable implements TableAPI {
     }
 
     transform(field: string, action: TransformAction): number {
-        const schemaField = this.schema.fields.find((f) => f.name === field);
-        const builder = a.Builder.new<a.Utf8>({ type: schemaField!.type, nullValues: [null] });
+        const log = process.env.LOG_TIMES === 'true';
+        if (log) console.time('init');
+        const schemaField = this.schema.fields.find((f) => f.name === field)!;
+        const builder = a.Builder.new<a.Utf8>({ type: schemaField.type, nullValues: [null] });
 
         const col = this._table.getColumn(field);
         if (!col) throw new Error(`Missing column for field ${field}`);
+        if (log) console.timeEnd('init');
 
-        const numChunks = col.chunks.length;
-        for (let i = 0; i < numChunks; i++) {
-            const chunk = col.chunks[i] as a.Float64Vector;
-            const chunkLen = chunk.length;
-            for (let j = 0; j < chunkLen; j++) {
-                const value = chunk.get(j);
-                builder.append(transformActions[action](value));
+        if (log) console.time('chunks');
+        let x = 0;
+        for (const chunk of col) {
+            if (log && x++ % 1000 === 0) {
+                console.time('transform');
+                const val = transformActions[action](chunk);
+                console.timeEnd('transform');
+                console.time('append');
+                builder.append(val);
+                console.timeEnd('append');
+            } else {
+                const val = transformActions[action](chunk);
+                builder.append(val);
             }
         }
-        builder.finish();
+        if (log) console.timeEnd('chunks');
+        if (log) console.time('create column');
+        const vector = builder.finish().toVector();
+        const result = vector.length - vector.nullCount;
+        const newCol = a.Column.new(schemaField, vector);
+        if (log) console.timeEnd('create column');
 
-        let result = -1;
-        const columns = this.schema.fields.map((f, index) => {
-            if (f.name === field) {
-                const vector = builder.toVector();
-                result = vector.length - vector.nullCount;
-                return a.Column.new(f, vector);
-            }
-            return this._table.getColumnAt(index) as a.Column;
-        });
+        if (log) console.time('select columns');
+        const columns = this.schema.fields.map((f, i) => {
+            if (f.name === field) return newCol;
+            return this._table.getColumnAt(i);
+        }).filter((c): c is a.Column => c != null);
+        if (log) console.timeEnd('select columns');
 
+        if (log) console.time('new table');
         this._table = a.Table.new(columns);
+        if (log) console.timeEnd('new table');
         return result;
     }
 

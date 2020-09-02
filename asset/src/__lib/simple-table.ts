@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/prefer-for-of */
-/* global BigInt */
 import * as dt from '@terascope/data-types';
-import { DataEntity } from '@terascope/job-components';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { matchers, transformActions } from './utils';
 
@@ -21,7 +19,7 @@ export class SimpleTable implements TableAPI {
         ));
     }
 
-    insert(records: DataEntity[]): void {
+    insert(records: Record<string, any>[]): void {
         const len = records.length;
 
         for (let i = 0; i < len; i++) {

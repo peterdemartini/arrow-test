@@ -1,5 +1,3 @@
-import { DataEntity } from '@terascope/job-components';
-
 export enum TableAction {
     sum = 'sum',
     filter = 'filter',
@@ -14,11 +12,13 @@ export type FilterMatch = {
 
 export enum TransformAction {
     toUpperCase = 'toUpperCase',
-    toLowerCase ='toLowerCase'
+    toLowerCase = 'toLowerCase',
+    increment = 'increment',
+    decrement = 'decrement',
 }
 
 export interface TableAPI {
-    insert(records: DataEntity[]): void;
+    insert(records: Record<string, any>[]): void;
 
     sum(field: string): bigint;
 

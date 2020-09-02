@@ -4,7 +4,7 @@ const { fastCloneDeep } = require('@terascope/job-components');
 const { Suite } = require('./helpers');
 const {
     TransformAction, ArrowTable, SimpleTable, JSONTable
-} = require('../asset');
+} = require('../asset/dist/__lib');
 const testData = require('./fixtures/test-data.json');
 
 const typeConfig = Object.entries({
@@ -47,29 +47,33 @@ simpleTable.insert(fastCloneDeep(testData));
 
 const jsonTable = new JSONTable(typeConfig);
 jsonTable.insert(fastCloneDeep(testData));
+const tables = { arrow: arrowTable, simple: simpleTable, json: jsonTable };
 
-const run = async () => Suite('Transform')
-    .add('Transform (arrow)', {
-        fn() {
-            arrowTable.transform('favorite_animal', TransformAction.toUpperCase);
+const fields = {
+    [TransformAction.toUpperCase]: 'favorite_animal',
+    [TransformAction.toLowerCase]: 'favorite_animal',
+    [TransformAction.increment]: 'age',
+    [TransformAction.decrement]: 'age',
+};
+
+const run = async () => {
+    const suite = Suite('Transform');
+    for (const action of Object.values(TransformAction)) {
+        for (const [tableType, table] of Object.entries(tables)) {
+            suite.add(`${action} transform (${tableType})`, {
+                fn() {
+                    table.transform(fields[action], action);
+                }
+            });
         }
-    })
-    .add('Transform (simple)', {
-        fn() {
-            simpleTable.transform('favorite_animal', TransformAction.toUpperCase);
-        }
-    })
-    .add('Transform (json)', {
-        fn() {
-            jsonTable.transform('favorite_animal', TransformAction.toUpperCase);
-        }
-    })
-    .run({
-        async: true,
-        minSamples: 3,
-        initCount: 0,
-        maxTime: 5
+    }
+    return suite.run({
+        async: false,
+        minSamples: 5,
+        initCount: 2,
+        maxTime: 10
     });
+};
 
 if (require.main === module) {
     run().then((suite) => {

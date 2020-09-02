@@ -1,8 +1,5 @@
-/* global BigInt */
 import * as dt from '@terascope/data-types';
-import {
-    DataEntity, filterObject
-} from '@terascope/job-components';
+import { filterObject } from '@terascope/utils';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { matchers, transformActions } from './utils';
 
@@ -17,7 +14,7 @@ export class JSONTable implements TableAPI {
         this.schema = typeConfig.slice();
     }
 
-    insert(records: DataEntity[]): void {
+    insert(records: Record<string, any>[]): void {
         const table: Record<string, unknown>[] = [];
 
         const includes = this.schema.map(([field]) => field);

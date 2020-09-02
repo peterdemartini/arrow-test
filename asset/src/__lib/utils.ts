@@ -10,10 +10,24 @@ export function toLowerCase(value: unknown): string|null {
     return value.toLowerCase();
 }
 
+export function increment(value: unknown): number|bigint|null {
+    if (typeof value === 'number') return value + 1;
+    if (typeof value === 'bigint') return value + BigInt(1);
+    return null;
+}
+
+export function decrement(value: unknown): number|bigint|null {
+    if (typeof value === 'number') return value - 1;
+    if (typeof value === 'bigint') return value - BigInt(1);
+    return null;
+}
+
 type TActions = Record<TransformAction, (value: unknown) => any|null>;
 export const transformActions: TActions = Object.freeze({
     [TransformAction.toUpperCase]: toUpperCase,
     [TransformAction.toLowerCase]: toLowerCase,
+    [TransformAction.increment]: increment,
+    [TransformAction.decrement]: decrement,
 });
 
 export const matchers = Object.freeze({

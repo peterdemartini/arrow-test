@@ -1,0 +1,24 @@
+ 
+******************** (1) arrow benchmarks found (9/2/2020, 9:59:07 AM) ********************
+ 
+- transform-suite.js
+ 
+======================================== Transform ========================================
+ 
+toUpperCase transform (arrow)   317.68 op/s ±  7.54%   (59 samples)
+toUpperCase transform (simple)14991.95 op/s ±  4.59%   (83 samples)
+toUpperCase transform (json)  10687.36 op/s ±  1.85%   (81 samples)
+toLowerCase transform (arrow)   333.54 op/s ±  8.76%   (70 samples)
+toLowerCase transform (simple)17795.20 op/s ±  8.31%   (76 samples)
+toLowerCase transform (json)  15012.99 op/s ±  3.97%   (89 samples)
+increment transform (arrow)    5383.63 op/s ± 28.83%   (81 samples)
+increment transform (simple)  44831.49 op/s ±  0.70%   (92 samples)
+increment transform (json)    12519.12 op/s ±  2.55%   (90 samples)
+decrement transform (arrow)    5454.99 op/s ±  7.64%   (71 samples)
+decrement transform (simple)  36937.29 op/s ±  6.50%   (75 samples)
+decrement transform (json)    10848.06 op/s ±  7.98%   (77 samples)
+
++++++++++++++++++++++++++++ Best: increment transform (simple) +++++++++++++++++++++++++++
+-------------------------- Worst: toUpperCase transform (arrow) --------------------------
+-------------------------- Worst: toLowerCase transform (arrow) --------------------------
+

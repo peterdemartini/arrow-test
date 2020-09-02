@@ -1,3 +1,6 @@
 {
-    "extends": "@terascope"
+    "extends": "@terascope",
+    "globals": {
+        "BigInt": true
+    }
 }

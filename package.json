@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "asset:build": "yarn && yarn run build",
-    "benchmark": "yarn build && node bench/index.js",
+    "benchmark": "yarn build && node bench/index.js | tee -a ./BENCHMARK_RESULT.txt",
     "build": "rm -rf asset/dist; tsc --project tsconfig.json",
     "build:watch": "yarn build --watch",
     "lint": "eslint --ignore-path .gitignore --ext .js,.ts .",

@@ -60,11 +60,15 @@ typings/
 # next.js build output
 .next
 
+*.0x/
+
 # Ignore teraslice asset builds
 build/
 builds/
 
 asset/dist
+
+scripts/test-data.json
 
 packages/*/coverage
 packages/*/dist
