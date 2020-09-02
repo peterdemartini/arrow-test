@@ -73,15 +73,9 @@ export class ArrowTable implements TableAPI {
         if (!col) throw new Error(`Missing column for field ${field}`);
 
         let sum = BigInt(0);
-        const numChunks = col.chunks.length;
-        for (let i = 0; i < numChunks; i++) {
-            const chunk = col.chunks[i] as a.Float64Vector;
-            const chunkLen = chunk.length;
-            for (let j = 0; j < chunkLen; j++) {
-                const value = chunk.get(j);
-                if (value != null) {
-                    sum += typeof value !== 'bigint' ? BigInt(value) : value;
-                }
+        for (const value of col) {
+            if (value != null) {
+                sum += typeof value !== 'bigint' ? BigInt(value) : value;
             }
         }
         return sum;

@@ -36,7 +36,7 @@ export class SimpleTable implements TableAPI {
         for (let i = 0; i < this.length; i++) {
             const value = col[i];
             if (value != null) {
-                sum += BigInt(value);
+                sum += typeof value !== 'bigint' ? BigInt(value) : value;
             }
         }
         return sum;

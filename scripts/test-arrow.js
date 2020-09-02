@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict';
 
 const {
@@ -51,8 +53,12 @@ const fields = {
     [TransformAction.decrement]: 'age',
 };
 
+console.log('START', process.resourceUsage());
 for (const action of Object.values(TransformAction)) {
     console.time(`transform ${action}`);
+    console.log(`START ${action}`, process.resourceUsage());
     arrowTable.transform(fields[action], action);
+    console.log(`END ${action}`, process.resourceUsage());
     console.timeEnd(`transform ${action}`);
 }
+console.log('END', process.resourceUsage());

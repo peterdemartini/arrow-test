@@ -29,7 +29,7 @@ export class JSONTable implements TableAPI {
         for (const record of this._table) {
             const value = record[field];
             if (value != null) {
-                sum += BigInt(value);
+                sum += typeof value !== 'bigint' ? BigInt(value) : value;
             }
         }
         return sum;

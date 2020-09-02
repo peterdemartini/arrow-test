@@ -1,53 +1,10 @@
 'use strict';
 
-const { fastCloneDeep } = require('@terascope/job-components');
 const { Suite } = require('./helpers');
 const {
-    TransformAction, ArrowTable, SimpleTable, JSONTable
+    TransformAction
 } = require('../asset/dist/__lib');
-const testData = require('./fixtures/test-data.json');
-
-const typeConfig = Object.entries({
-    _key: {
-        type: 'Keyword'
-    },
-    name: {
-        type: 'Keyword'
-    },
-    age: {
-        type: 'Short'
-    },
-    ssn: {
-        type: 'Keyword'
-    },
-    favorite_animal: {
-        type: 'Keyword'
-    },
-    ip: {
-        type: 'IP'
-    },
-    phone: {
-        type: 'Keyword'
-    },
-    birthday: {
-        type: 'Date'
-    },
-    address: {
-        type: 'Text'
-    },
-    alive: {
-        type: 'Boolean'
-    },
-});
-const arrowTable = new ArrowTable(typeConfig);
-arrowTable.insert(fastCloneDeep(testData));
-
-const simpleTable = new SimpleTable(typeConfig);
-simpleTable.insert(fastCloneDeep(testData));
-
-const jsonTable = new JSONTable(typeConfig);
-jsonTable.insert(fastCloneDeep(testData));
-const tables = { arrow: arrowTable, simple: simpleTable, json: jsonTable };
+const tables = require('./tables');
 
 const fields = {
     [TransformAction.toUpperCase]: 'favorite_animal',
@@ -68,7 +25,7 @@ const run = async () => {
         }
     }
     return suite.run({
-        async: false,
+        async: true,
         minSamples: 5,
         initCount: 2,
         maxTime: 10
