@@ -6,6 +6,7 @@ import { transformActions } from './utils';
 
 export class ArrowTable implements TableAPI {
     private schema: a.Schema;
+    private builders: Record<string, a.Builder> = {};
 
     private _table: a.Table = a.Table.empty();
 
@@ -36,30 +37,27 @@ export class ArrowTable implements TableAPI {
         this.schema = new a.Schema(typeConfig.map(
             ([name, config]) => this._getField(name, config)
         ));
+        this.schema.fields.forEach((field) => {
+            this.builders[field.name] = a.Builder.new({ type: field.type, nullValues: [null] });
+        });
     }
 
     insert(records: Record<string, any>[]): void {
         const len = records.length;
-        const builders: Record<string, a.Builder> = Object.create(null);
 
-        this.schema.fields.forEach((field) => {
-            builders[field.name] = a.Builder.new({ type: field.type, nullValues: [null] });
-        });
+        const builders = Object.entries(this.builders);
 
         for (let i = 0; i < len; i++) {
             const record = records[i];
-            for (const field in builders) {
-                if (hasOwn(record, field)) {
-                    builders[field].append(record[field] ?? null);
-                } else {
-                    builders[field].append(null);
-                }
+            for (const [field, builder] of builders) {
+                builder.append(record[field] ?? null);
             }
         }
 
-        const columns = Object.entries(builders).map(
+        const columns = builders.map(
             ([field, builder]) => {
                 const vector = builder.finish().toVector();
+                builder.clear();
                 const col = this._table.getColumn(field);
                 if (!col) return a.Column.new(field, vector);
 
@@ -92,8 +90,7 @@ export class ArrowTable implements TableAPI {
     transform(field: string, action: TransformAction): number {
         const log = process.env.LOG_TIMES === 'true';
         if (log) console.time('init');
-        const schemaField = this.schema.fields.find((f) => f.name === field)!;
-        const builder = a.Builder.new<a.Utf8>({ type: schemaField.type, nullValues: [null] });
+        const builder = this.builders[field];
 
         const col = this._table.getColumn(field);
         if (!col) throw new Error(`Missing column for field ${field}`);
@@ -114,9 +111,14 @@ export class ArrowTable implements TableAPI {
             }
         }
         if (log) console.timeEnd('chunks');
-        if (log) console.time('create column');
+        if (log) console.time('finish builder');
         const vector = builder.finish().toVector();
+        builder.clear();
         const result = vector.length - vector.nullCount;
+        if (log) console.timeEnd('finish builder');
+
+        if (log) console.time('create column');
+        const schemaField = this.schema.fields.find((f) => f.name === field)!;
         const newCol = a.Column.new(schemaField, vector);
         if (log) console.timeEnd('create column');
 
@@ -180,8 +182,4 @@ export class ArrowTable implements TableAPI {
                 return new a.Utf8();
         }
     }
-}
-
-function hasOwn<T extends Record<string, unknown>, K extends(keyof T)>(obj: T, key: K) {
-    return Object.prototype.hasOwnProperty.call(obj, key);
 }
