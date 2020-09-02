@@ -81,15 +81,11 @@
         },
         {
             "_op": "table_sum",
-            "action": "sum",
-            "args": [
-                "age"
-            ]
+            "field": "age"
         },
         {
             "_op": "table_filter",
-            "action": "filter",
-            "args": [
+            "filters": [
                 {
                     "field": "age",
                     "value": 60,
@@ -101,22 +97,6 @@
                     "operator": "eq"
                 }
             ]
-        },
-        {
-            "_op": "table_transform",
-            "action": "transform",
-            "args": [
-                "favorite_animal",
-                "toUpperCase"
-            ]
         }
-    ],
-    "__metadata": {
-        "cli": {
-            "cluster": "http://ts-ci1.tera4.lan",
-            "version": "0.29.1",
-            "job_id": "83d5967b-56f8-4d2d-8cfb-4efa3792f9b7",
-            "updated": "2020-09-01T18:38:53.840Z"
-        }
-    }
+    ]
 }
