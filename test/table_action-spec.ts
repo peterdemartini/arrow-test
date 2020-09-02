@@ -1,4 +1,3 @@
-/* global BigInt */
 import 'jest-extended';
 import { Chance } from 'chance';
 import { TypeConfigFields } from '@terascope/data-types';
