@@ -5,9 +5,13 @@ import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import {
     chunk, isInteger, OpConfig, random, times
 } from '@terascope/job-components';
-import { TableType } from '../asset/src/table/interfaces';
-import { TableAPI, TableAction, TransformAction } from '../asset/src/__lib/interfaces';
-import { toUpperCase } from '../asset/src/__lib/utils';
+import {
+    TableType,
+    TableAPI,
+    TableAction,
+    TransformAction,
+    toUpperCase
+} from '../asset/src/table/__lib';
 
 const chance = new Chance();
 

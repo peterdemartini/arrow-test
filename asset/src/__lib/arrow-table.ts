@@ -54,7 +54,6 @@ export class ArrowTable implements TableAPI {
         const columns = builders.map(
             ([field, builder]) => {
                 const vector = builder.finish().toVector();
-                builder.clear();
                 const col = this._table.getColumn(field);
                 if (!col) return a.Column.new(field, vector);
 
@@ -96,12 +95,13 @@ export class ArrowTable implements TableAPI {
         const col = this._table.getColumn(field);
         if (!col) throw new Error(`Missing column for field ${field}`);
 
-        for (const value of col) {
+        function transformAndAppend(value: unknown): void {
             builder.append(transformActions[action](value));
         }
 
+        col.toArray().forEach(transformAndAppend);
+
         const vector = builder.finish().toVector();
-        builder.clear();
         return a.Column.new(col.field, vector);
     }
 
