@@ -76,7 +76,7 @@
     "operations": [
         {
             "_op": "table_reader",
-            "total": 10000000,
+            "total": 1000000,
             "batch_size": 5000
         },
         {
@@ -97,6 +97,11 @@
                     "operator": "eq"
                 }
             ]
+        },
+        {
+            "_op": "table_transform",
+            "field": "favorite_animal",
+            "fn": "toUpperCase"
         }
     ]
 }
