@@ -24,13 +24,13 @@ export enum TransformAction {
 }
 
 export interface TableAPI {
-    insert(records: Record<string, any>[]): void;
+    insert(records: Record<string, any>[]): Promise<void>;
 
-    sum(field: string): bigint;
+    sum(field: string): Promise<bigint>;
 
-    transform(field: string, action: TransformAction): number;
+    transform(field: string, action: TransformAction): Promise<number>;
 
-    filter(...matches: FilterMatch[]): number;
+    filter(...matches: FilterMatch[]): Promise<number>;
 
     toJSON(): Record<string, any>[];
 }

@@ -4,7 +4,7 @@ const { fastCloneDeep } = require('@terascope/job-components');
 const testData = require('./fixtures/test-data.json');
 const {
     ArrowTable, SimpleTable, JSONTable
-} = require('../asset/dist/__lib');
+} = require('../asset');
 
 const typeConfig = Object.entries({
     _key: {

@@ -7,8 +7,9 @@ const run = async () => {
     const suite = Suite('Sum');
     for (const [tableType, table] of Object.entries(tables)) {
         suite.add(`sum (${tableType})`, {
-            fn() {
-                table.sum('age');
+            defer: true,
+            fn(deferred) {
+                table.sum('age').then(() => deferred.resolve());
             }
         });
     }

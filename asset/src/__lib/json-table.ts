@@ -14,7 +14,7 @@ export class JSONTable implements TableAPI {
         this.schema = typeConfig.slice();
     }
 
-    insert(records: Record<string, any>[]): void {
+    async insert(records: Record<string, any>[]): Promise<void> {
         const table: Record<string, unknown>[] = [];
 
         const includes = this.schema.map(([field]) => field);
@@ -24,7 +24,7 @@ export class JSONTable implements TableAPI {
         this._table = this._table.concat(table);
     }
 
-    sum(field: string): bigint {
+    async sum(field: string): Promise<bigint> {
         let sum = BigInt(0);
         for (const record of this._table) {
             const value = record[field];
@@ -35,7 +35,7 @@ export class JSONTable implements TableAPI {
         return sum;
     }
 
-    transform(field: string, action: TransformAction): number {
+    async transform(field: string, action: TransformAction): Promise<number> {
         let count = 0;
         this._table = this._table.map((record) => {
             record[field] = transformActions[action](record[field]);
@@ -45,7 +45,7 @@ export class JSONTable implements TableAPI {
         return count;
     }
 
-    filter(...matches: FilterMatch[]): number {
+    async filter(...matches: FilterMatch[]): Promise<number> {
         const matchRecord = (record: Record<string, unknown>): boolean => matches.every((match) => {
             const op = matchers[match.operator ?? 'eq'];
             return op(record[match.field], match.value);

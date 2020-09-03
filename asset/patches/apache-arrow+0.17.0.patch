@@ -11,3 +11,72 @@ index 86139f3..5950050 100644
              // Node's `Buffer` class passes the `instanceof Uint8Array` check, but we need
              // a real Uint8Array, since Buffer#slice isn't the same as Uint8Array#slice :/
              return new ArrayBufferViewCtor(value.buffer, value.byteOffset, value.byteLength);
+diff --git a/node_modules/apache-arrow/util/utf8.js b/node_modules/apache-arrow/util/utf8.js
+index 909c9fa..953e993 100644
+--- a/node_modules/apache-arrow/util/utf8.js
++++ b/node_modules/apache-arrow/util/utf8.js
+@@ -22,11 +22,57 @@ const text_encoding_utf_8_1 = require("text-encoding-utf-8");
+ const _Buffer = typeof Buffer === 'function' ? Buffer : null;
+ /** @ignore */
+ const useNativeEncoders = typeof TextDecoder === 'function' && typeof TextEncoder === 'function';
++const MIN_TEXT_DECODER_STRING_LENGTH = 200;
+ /** @ignore */
+ exports.decodeUtf8 = ((TextDecoder) => {
+     if (useNativeEncoders || !_Buffer) {
+         const decoder = new TextDecoder('utf-8');
+-        return (buffer) => decoder.decode(buffer);
++        // https://appspector.com/blog/how-to-improve-messagepack-javascript-parsing-speed-by-2-6-times
++        function utf8Decode(buffer) {
++            let offset = 0;
++            const end = offset + buffer.byteLength;
++
++            if (buffer == null || buffer.byteLength > MIN_TEXT_DECODER_STRING_LENGTH) {
++                return decoder.decode(buffer);
++            }
++
++            const bytes = buffer.slice(offset, end);
++
++            const out = [];
++            while (offset < end) {
++                const byte1 = bytes[offset++];
++                if ((byte1 & 0x80) === 0) {
++                    // 1 byte
++                    out.push(byte1);
++                } else if ((byte1 & 0xe0) === 0xc0) {
++                    // 2 bytes
++                    const byte2 = bytes[offset++] & 0x3f;
++                    out.push(((byte1 & 0x1f) << 6) | byte2);
++                } else if ((byte1 & 0xf0) === 0xe0) {
++                    // 3 bytes
++                    const byte2 = bytes[offset++] & 0x3f;
++                    const byte3 = bytes[offset++] & 0x3f;
++                    out.push(((byte1 & 0x1f) << 12) | (byte2 << 6) | byte3);
++                } else if ((byte1 & 0xf8) === 0xf0) {
++                    // 4 bytes
++                    const byte2 = bytes[offset++] & 0x3f;
++                    const byte3 = bytes[offset++] & 0x3f;
++                    const byte4 = bytes[offset++] & 0x3f;
++                    let unit = ((byte1 & 0x07) << 0x12) | (byte2 << 0x0c) | (byte3 << 0x06) | byte4;
++                    if (unit > 0xffff) {
++                        unit -= 0x10000;
++                        out.push(((unit >>> 10) & 0x3ff) | 0xd800);
++                        unit = 0xdc00 | (unit & 0x3ff);
++                    }
++                    out.push(unit);
++                } else {
++                    out.push(byte1);
++                }
++            }
++
++            return String.fromCharCode.apply(String, out);
++        }
++        return utf8Decode;
+     }
+     return (input) => {
+         const { buffer, byteOffset, length } = buffer_1.toUint8Array(input);
+@@ -41,5 +87,4 @@ exports.encodeUtf8 = ((TextEncoder) => {
+     }
+     return (input = '') => buffer_1.toUint8Array(_Buffer.from(input, 'utf8'));
+ })(typeof TextEncoder !== 'undefined' ? TextEncoder : text_encoding_utf_8_1.TextEncoder);
+-
+ //# sourceMappingURL=utf8.js.map

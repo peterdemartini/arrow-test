@@ -43,7 +43,7 @@ export default class TableFetcher extends Fetcher<TableReaderConfig> {
         }
 
         await pDelay(10);
-        api.insert(results);
+        await api.insert(results);
         await pDelay(10);
 
         return results;

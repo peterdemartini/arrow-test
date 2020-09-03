@@ -18,7 +18,7 @@ export class ArrowTable implements TableAPI {
         });
     }
 
-    insert(records: Record<string, any>[]): void {
+    async insert(records: Record<string, any>[]): Promise<void> {
         const len = records.length;
 
         const builders = Object.entries(this.builders);
@@ -43,7 +43,7 @@ export class ArrowTable implements TableAPI {
         this._table = a.Table.new(columns);
     }
 
-    sum(field: string): bigint {
+    async sum(field: string): Promise<bigint> {
         const col = this._table.getColumn(field);
         if (!col) throw new Error(`Missing column for field ${field}`);
 
@@ -56,8 +56,8 @@ export class ArrowTable implements TableAPI {
         return sum;
     }
 
-    transform(field: string, action: TransformAction): number {
-        const col = this._transformColumn(field, action);
+    async transform(field: string, action: TransformAction): Promise<number> {
+        const col = await this._transformColumn(field, action);
 
         const columns = this.schema.fields.map((f, i) => {
             if (f.name === field) return col;
@@ -68,23 +68,21 @@ export class ArrowTable implements TableAPI {
         return col.length - col.nullCount;
     }
 
-    private _transformColumn(field: string, action: TransformAction): a.Vector {
+    private async _transformColumn(field: string, action: TransformAction): Promise<a.Vector> {
         const builder = this.builders[field];
 
         const col = this._table.getColumn(field);
         if (!col) throw new Error(`Missing column for field ${field}`);
 
-        function transformAndAppend(value: unknown): void {
+        for (const value of col) {
             builder.append(transformActions[action](value));
         }
-
-        for (const value of col) { transformAndAppend(value); }
 
         const vector = builder.finish().toVector();
         return a.Column.new(col.field, vector);
     }
 
-    filter(...matches: FilterMatch[]): number {
+    async filter(...matches: FilterMatch[]): Promise<number> {
         const predicate = a.predicate.and(
             ...matches.map((match) => {
                 const op = match.operator ?? 'eq';

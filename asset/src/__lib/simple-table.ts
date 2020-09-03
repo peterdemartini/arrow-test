@@ -19,7 +19,7 @@ export class SimpleTable implements TableAPI {
         ));
     }
 
-    insert(records: Record<string, any>[]): void {
+    async insert(records: Record<string, any>[]): Promise<void> {
         const len = records.length;
 
         for (let i = 0; i < len; i++) {
@@ -30,7 +30,7 @@ export class SimpleTable implements TableAPI {
         }
     }
 
-    sum(field: string): bigint {
+    async sum(field: string): Promise<bigint> {
         const col = this.getColumn<number>(field);
         let sum = BigInt(0);
         for (let i = 0; i < this.length; i++) {
@@ -42,7 +42,7 @@ export class SimpleTable implements TableAPI {
         return sum;
     }
 
-    transform(field: string, action: TransformAction): number {
+    async transform(field: string, action: TransformAction): Promise<number> {
         const col = this.getColumn(field);
         let count = 0;
 
@@ -54,7 +54,7 @@ export class SimpleTable implements TableAPI {
         return count;
     }
 
-    filter(...matches: FilterMatch[]): number {
+    async filter(...matches: FilterMatch[]): Promise<number> {
         if (!matches.length) return 0;
 
         const otherFields = this.schema

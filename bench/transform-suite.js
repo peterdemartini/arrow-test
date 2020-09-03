@@ -18,8 +18,11 @@ const run = async () => {
     for (const action of Object.values(TransformAction)) {
         for (const [tableType, table] of Object.entries(tables)) {
             suite.add(`${action} transform (${tableType})`, {
-                fn() {
-                    table.transform(fields[action], action);
+                defer: true,
+                fn(deferred) {
+                    table.transform(
+                        fields[action], action
+                    ).then(() => deferred.resolve());
                 }
             });
         }

@@ -7,7 +7,8 @@ const run = async () => {
     const suite = Suite('Filter');
     for (const [tableType, table] of Object.entries(tables)) {
         suite.add(`filter (${tableType})`, {
-            fn() {
+            defer: true,
+            fn(deferred) {
                 table.filter({
                     field: 'age',
                     value: 60,
@@ -17,7 +18,7 @@ const run = async () => {
                     field: 'alive',
                     value: true,
                     operator: 'eq'
-                });
+                }).then(() => deferred.resolve());
             }
         });
     }
