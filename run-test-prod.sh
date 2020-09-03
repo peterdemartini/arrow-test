@@ -15,7 +15,7 @@ run_job() {
 
 main() {
     local asset_version;
-    asset_version="$(jq '.version' ./asset/package.json)"
+    asset_version="$(jq -r '.version' ./asset/asset.json)"
 
     if teraslice-cli assets list tera4 | grep 'arrow-test' | grep "$asset_version"; then
         echo '* using the existing asset (make sure to bump)'
