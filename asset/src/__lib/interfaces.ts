@@ -2,6 +2,7 @@ export enum TableType {
     json = 'json',
     simple = 'simple',
     arrow = 'arrow',
+    data = 'data'
 }
 
 export enum TableAction {
@@ -28,7 +29,7 @@ export interface TableAPI {
 
     sum(field: string): Promise<bigint>;
 
-    transform(field: string, action: TransformAction): Promise<number>;
+    transform(field: string, action: TransformAction): Promise<void>;
 
     filter(...matches: FilterMatch[]): Promise<number>;
 

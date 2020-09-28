@@ -42,16 +42,13 @@ export class SimpleTable implements TableAPI {
         return sum;
     }
 
-    async transform(field: string, action: TransformAction): Promise<number> {
+    async transform(field: string, action: TransformAction): Promise<void> {
         const col = this.getColumn(field);
-        let count = 0;
 
         for (let i = 0; i < this.length; i++) {
             const value = transformActions[action](col[i]);
-            if (value != null) count++;
             col[i] = value;
         }
-        return count;
     }
 
     async filter(...matches: FilterMatch[]): Promise<number> {
@@ -91,7 +88,10 @@ export class SimpleTable implements TableAPI {
     getRow(index: number): Record<string, unknown> {
         const row: Record<string, unknown> = {};
         for (const [field] of this.schema) {
-            row[field] = this._table[field][index];
+            const value = this._table[field][index];
+            if (value != null) {
+                row[field] = value;
+            }
         }
         return row;
     }

@@ -1,5 +1,5 @@
 import type * as dt from '@terascope/data-types';
-import { filterObject } from '@terascope/utils';
+import { filterObject, withoutNil } from '@terascope/utils';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { matchers, transformActions } from './utils';
 
@@ -35,14 +35,11 @@ export class JSONTable implements TableAPI {
         return sum;
     }
 
-    async transform(field: string, action: TransformAction): Promise<number> {
-        let count = 0;
+    async transform(field: string, action: TransformAction): Promise<void> {
         this._table = this._table.map((record) => {
             record[field] = transformActions[action](record[field]);
-            if (record[field] != null) count++;
             return record;
         });
-        return count;
     }
 
     async filter(...matches: FilterMatch[]): Promise<number> {
@@ -56,6 +53,6 @@ export class JSONTable implements TableAPI {
     }
 
     toJSON(): Record<string, unknown>[] {
-        return JSON.parse(JSON.stringify(this._table));
+        return JSON.parse(JSON.stringify(this._table)).map(withoutNil);
     }
 }

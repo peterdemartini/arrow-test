@@ -3,7 +3,7 @@
 const { fastCloneDeep } = require('@terascope/job-components');
 const testData = require('./fixtures/test-data.json');
 const {
-    ArrowTable, SimpleTable, JSONTable
+    ArrowTable, DataTable, SimpleTable, JSONTable,
 } = require('../asset');
 
 const typeConfig = Object.entries({
@@ -38,6 +38,7 @@ const typeConfig = Object.entries({
         type: 'Boolean'
     },
 });
+
 const arrowTable = new ArrowTable(typeConfig);
 arrowTable.insert(fastCloneDeep(testData));
 
@@ -46,8 +47,13 @@ simpleTable.insert(fastCloneDeep(testData));
 
 const jsonTable = new JSONTable(typeConfig);
 jsonTable.insert(fastCloneDeep(testData));
+
+const dataTable = new DataTable(typeConfig);
+dataTable.insert(fastCloneDeep(testData));
+
 module.exports = {
     json: jsonTable,
     simple: simpleTable,
     arrow: arrowTable,
+    data: dataTable,
 };

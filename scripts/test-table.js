@@ -39,7 +39,7 @@ const typeConfig = Object.entries({
         type: 'Boolean'
     },
 });
-const table = newTable(TableType.arrow, typeConfig);
+const table = newTable(TableType.data, typeConfig);
 
 (async function run() {
     console.time(`insert ${testData.length} records`);

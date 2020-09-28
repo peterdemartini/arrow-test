@@ -56,7 +56,7 @@ export class ArrowTable implements TableAPI {
         return sum;
     }
 
-    async transform(field: string, action: TransformAction): Promise<number> {
+    async transform(field: string, action: TransformAction): Promise<void> {
         const col = await this._transformColumn(field, action);
 
         const columns = this.schema.fields.map((f, i) => {
@@ -65,7 +65,6 @@ export class ArrowTable implements TableAPI {
         });
 
         this._table = a.Table.new(columns);
-        return col.length - col.nullCount;
     }
 
     private async _transformColumn(field: string, action: TransformAction): Promise<a.Vector> {
@@ -103,6 +102,7 @@ export class ArrowTable implements TableAPI {
             const record: Record<string, unknown> = {};
             for (const name of colNames) {
                 const value = row.get(name);
+                if (value == null) continue;
                 if (value instanceof a.BaseVector) {
                     record[name] = value.toJSON();
                 } else {

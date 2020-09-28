@@ -1,10 +1,12 @@
 import 'jest-extended';
 import { Chance } from 'chance';
-import { TypeConfigFields } from '@terascope/data-types';
-import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
 import {
+    withoutNil,
     chunk, isInteger, OpConfig, random, times
 } from '@terascope/job-components';
+import { TypeConfigFields } from '@terascope/data-types';
+import { WorkerTestHarness, newTestJobConfig } from 'teraslice-test-harness';
+
 import {
     TableType,
     TableAPI,
@@ -100,7 +102,7 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
 
         it('should store the correct data', async () => {
             await prepare([]);
-            expect(tableAPI.toJSON()).toStrictEqual(value_input);
+            expect(tableAPI.toJSON()).toStrictEqual(value_input.map(withoutNil));
         });
 
         it('should be able sum the data', async () => {
@@ -190,7 +192,7 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
             ]);
 
             expect(tableAPI.toJSON()).toEqual(value_input.map((record) => ({
-                ...record,
+                ...withoutNil(record),
                 keyword: toUpperCase(record.keyword)
             })));
         });
