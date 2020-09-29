@@ -88,7 +88,7 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
                 bool: randNull(chance.bool, undefined, chance),
                 byte: randNull(chance.integer, { min: -128, max: 127 }, chance),
                 short: randNull(chance.integer, { min: -32_768, max: 32_767 }, chance),
-                int: randNull(chance.integer, {}, chance),
+                int: randNull(chance.integer, { min: -(2 ** 31), max: (2 ** 31) - 1 }, chance),
                 float: randNull(chance.floating, {}, chance)
             }));
 
@@ -218,7 +218,7 @@ describe.each(Object.values(TableType))('(%s) Table Action Processor', (tableTyp
                 bool: randArrSize(chance.bool, undefined, chance),
                 byte: randArrSize(chance.integer, { min: -128, max: 127 }, chance),
                 short: randArrSize(chance.integer, { min: -32_768, max: 32_767 }, chance),
-                int: randArrSize(chance.integer, {}, chance),
+                int: randArrSize(chance.integer, { min: -(2 ** 31), max: (2 ** 31) - 1 }, chance),
                 float: randArrSize(chance.floating, {}, chance)
             }));
 

@@ -1,5 +1,6 @@
 import type * as dt from '@terascope/data-types';
 import { DataFrame, ColumnTransform } from '@terascope/data-mate';
+import { toBigIntOrThrow } from '@terascope/job-components';
 import { FilterMatch, TableAPI, TransformAction } from './interfaces';
 import { matchers } from './utils';
 
@@ -24,7 +25,7 @@ export class DataTable implements TableAPI {
     }
 
     async sum(field: string): Promise<bigint> {
-        return BigInt(this._table.getColumn(field)!.sum());
+        return toBigIntOrThrow(this._table.getColumn(field)!.sum());
     }
 
     async transform(field: string, action: TransformAction): Promise<void> {
@@ -39,7 +40,7 @@ export class DataTable implements TableAPI {
             const op = matchers[match.operator ?? 'eq'];
             return [match.field, (value: any) => op(value, match.value)];
         })));
-        return filtered.count();
+        return filtered.size;
     }
 
     toJSON(): Record<string, unknown>[] {
